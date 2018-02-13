@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICurriculumTypeMapper">
+
+
+    <resultMap id="BaseCurriculumType" type="com.magic.aimai.business.entity.CurriculumType">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="curriculumTypeName" property="curriculumTypeName" javaType="java.lang.String"/>
+        <association property="curriculumList" column="curriculumTypeId=id,provinceId=provinceId,
+        townId=townId,countyId=countyId,tradeId=tradeId,userId=userId,limit=limit,limitSize=limitSize" select="com.magic.aimai.business.mapper.ICurriculumMapper.queryCurriculumByItemsAndType"/>
+    </resultMap>
+
+
+    <select id="queryCurriculumTypeIncludeCurriculum" resultMap="BaseCurriculumType">
+        SELECT
+        id,
+        curriculumTypeName,
+        #{provinceId} AS provinceId,
+        #{townId} AS townId,
+        #{countyId} AS countyId,
+        #{tradeId} AS tradeId,
+        #{userId} AS userId,
+        #{limit} AS `limit`,
+        #{limitSize} AS limitSize
+        FROM
+        curriculum_type
+        ORDER BY id DESC
+    </select>
+
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.CurriculumType" parameterType="map">
+        SELECT
+        ct.id, ct.curriculumTypeName
+        FROM
+        curriculum_type ct
+        WHERE 1=1
+        <if test="curriculumTypeName != null and curriculumTypeName != ''">
+            AND ct.curriculumTypeName Like '%${curriculumTypeName}%'
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        ct.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM
+        curriculum_type ct
+        WHERE 1=1
+        <if test="curriculumTypeName != null and curriculumTypeName != ''">
+            AND ct.curriculumTypeName Like '%${curriculumTypeName}%'
+        </if>
+
+    </select>
+</mapper>

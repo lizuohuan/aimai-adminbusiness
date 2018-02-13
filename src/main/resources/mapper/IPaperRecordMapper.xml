@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IPaperRecordMapper">
+
+    <select id="countPager" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM paper_record WHERE  userId = #{userId} AND orderId = #{orderId} AND paperId = #{paperId}
+    </select>
+
+    <insert id="addPaperRecord" parameterType="com.magic.aimai.business.entity.PaperRecord">
+        INSERT INTO paper_record ( orderId, userId, paperId, exerciseNum, countNum, correctNum, createTime, passScore, paperScore, resultScore,
+        seconds,resultDetail,`type`)
+        VALUES
+        (#{orderId}, #{userId}, #{paperId}, #{exerciseNum}, #{countNum}, #{correctNum}, now(),
+        #{passScore}, #{paperScore}, #{resultScore},#{seconds},#{resultDetail},#{type})
+    </insert>
+
+    <select id="queryPaperRecord" resultType="com.magic.aimai.business.entity.PaperRecord">
+        SELECT pr.*,
+          (SELECT sp_paper_count(pr.userId,pr.orderId)) AS `count`
+         FROM paper_record pr
+        WHERE  pr.userId = #{userId} AND pr.orderId = #{orderId} AND pr.paperId = #{paperId}
+        ORDER BY pr.id DESC
+        LIMIT 0,1
+    </select>
+
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.PaperRecord" parameterType="map">
+        SELECT pr.*,p.paperTitle ,c.curriculumName
+        FROM papers p ,paper_record pr ,curriculum c
+        WHERE pr.paperId = p.id
+        AND c.id = p.targetId
+        AND p.type = 2
+        AND pr.userId = #{userId}
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        pr.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForWeb" resultType="com.magic.aimai.business.entity.PaperRecord" parameterType="map">
+        SELECT pr.*,p.paperTitle ,c.curriculumName
+        FROM papers p ,paper_record pr ,curriculum c
+        WHERE pr.paperId = p.id
+        AND c.id = p.targetId
+        AND p.type = 2
+        AND pr.userId = #{userId}
+        ORDER BY
+        pr.id DESC
+        <if test="limit != null and limitSize != null">
+            limit #{limit}, #{limitSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM papers p ,paper_record pr,curriculum c
+        WHERE pr.paperId = p.id
+        AND c.id = p.targetId
+        AND p.type = 2
+        AND pr.userId = #{userId}
+    </select>
+
+    <update id="updateIsPass" parameterType="com.magic.aimai.business.entity.PaperRecord">
+        update paper_record set
+        <if test="passScore != null">
+            passScore = #{passScore},
+        </if>
+        resultScore = #{resultScore} where id = #{id}
+    </update>
+
+    <select id="getInfoByCurriculumId" resultType="com.magic.aimai.business.entity.PaperRecord" >
+        select * from paper_record pr
+        WHERE  pr.type = #{type}
+        AND pr.userId = #{userId}
+        AND pr.paperId = #{curriculumId}
+        AND pr.orderId = #{orderId}
+
+    </select>
+</mapper>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IVideoWareHouseMapper">
+
+
+
+    <delete id="delete">
+        DELETE FROM video_ware_house WHERE id = #{id}
+    </delete>
+
+    <select id="info" resultType="com.magic.aimai.business.entity.VideoWareHouse">
+        SELECT * FROM video_ware_house WHERE id = #{id}
+    </select>
+
+
+    <insert id="save" parameterType="list">
+        insert into video_ware_house (name, url, isBand, `seconds`, createTime, fd, ld, sd, hd, od, flag, videoId, coverURL)
+        values
+        <foreach collection="list" separator="," item="v">
+            (#{v.name},#{v.url},0,#{v.seconds},now(),#{v.fd},#{v.ld},#{v.sd},#{v.hd},#{v.od},#{v.flag},#{v.videoId},#{v.coverURL})
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.VideoWareHouse">
+        UPDATE video_ware_house
+        <set>
+            <if test="coverURL != null and coverURL != ''">
+              `coverURL` = #{coverURL},
+            </if>
+            <if test="od != null and od != ''">
+              `od` = #{od},
+            </if>
+            <if test="hd != null and hd != ''">
+              `hd` = #{hd},
+            </if>
+            <if test="sd != null and sd != ''">
+              `sd` = #{sd},
+            </if>
+            <if test="name != null and name != ''">
+              `name` = #{name},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+            <if test="isBand != null">
+                isBand = #{isBand},
+            </if>
+            <if test="seconds != null">
+                seconds = #{seconds},
+            </if>
+            <if test="fd != null">
+                fd = #{fd},
+            </if>
+            <if test="ld != null">
+                ld = #{ld},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <update id="updateList" parameterType="list">
+        <foreach collection="list" separator=";" item="v">
+            UPDATE video_ware_house
+            <set>
+                <if test="v.name != null and v.name != ''">
+                    `name` = #{v.name},
+                </if>
+                <if test="v.url != null and v.url != ''">
+                    url = #{v.url}
+                </if>
+                <if test="v.isBand != null">
+                    isBand = #{v.isBand}
+                </if>
+            </set>
+            WHERE id = #{v.id}
+        </foreach>
+
+    </update>
+
+    <update id="updateIsBind" >
+        <foreach collection="vIds" separator=";" item="v">
+            UPDATE video_ware_house SET isBand = 0 WHERE id = #{v}
+        </foreach>
+
+    </update>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.VideoWareHouse" parameterType="map">
+        SELECT
+        vw.*
+        FROM video_ware_house vw
+        WHERE 1 = 1
+        <if test="name != null and name != ''">
+            AND vw.name LIKE '%${name}%'
+        </if>
+        <if test="isCloud == 1">
+            AND vw.flag = 0
+        </if>
+        <if test="isCloud == 0 ">
+            AND vw.flag IS NULL
+        </if>
+        <if test="startTime != null">
+            AND vw.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND vw.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        vw.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(DISTINCT vw.id)
+        FROM video_ware_house vw
+        LEFT JOIN videos v ON v.videoWareHouseHighId = vw.id OR v.videoWareHouseLowId = vw.id
+        LEFT JOIN course_ware cw ON cw.id = v.courseWareId
+        LEFT JOIN curriculum c ON c.id = cw.curriculumId
+        WHERE 1 = 1
+        <if test="curriculumName != null and curriculumName != ''">
+            AND c.curriculumName LIKE '%${curriculumName}%'
+        </if>
+        <if test="isCloud == 1">
+            AND vw.flag = 0
+        </if>
+        <if test="isCloud == 0 ">
+            AND vw.flag IS NULL
+        </if>
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName LIKE '%${courseWareName}%'
+        </if>
+        <if test="name != null and name != ''">
+            AND vw.name LIKE '%${name}%'
+        </if>
+        <if test="isBand != null">
+            AND (vw.isBand = #{isBand}
+            <if test="id != null">
+                OR vw.id = #{id}
+            </if>)
+        </if>
+        <if test="startTime != null">
+            AND vw.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND vw.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+
+
+</mapper>

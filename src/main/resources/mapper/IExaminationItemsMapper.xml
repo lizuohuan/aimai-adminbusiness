@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IExaminationItemsMapper">
+
+    <resultMap id="BaseExaminationItems" type="com.magic.aimai.business.entity.ExaminationItems">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="itemTitle" property="itemTitle" javaType="java.lang.String"/>
+        <result column="examinationName" property="examinationName" javaType="java.lang.String"/>
+        <result column="isCorrect" property="isCorrect" javaType="java.lang.Integer"/>
+        <result column="sortNum" property="sortNum" javaType="java.lang.Integer"/>
+        <result column="examinationId" property="examinationId" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <select id="queryExaminationByExamination" resultType="com.magic.aimai.business.entity.ExaminationItems">
+        SELECT ei.*,e.title AS examinationName
+        FROM examination_items ei,examination e
+        WHERE
+        e.id = ei.examinationId
+        AND examinationId = #{examinationId}
+        ORDER BY sortNum ASC
+    </select>
+
+
+    <select id="queryExaminationItemsByExamination" resultType="com.magic.aimai.business.entity.ExaminationItems">
+        SELECT ei.*,e.title AS examinationName
+        FROM examination_items ei,examination e
+        WHERE
+        e.id = ei.examinationId
+        AND examinationId = #{examinationId}
+        ORDER BY sortNum ASC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countExaminationItemsByExamination" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM examination_items
+        WHERE examinationId = #{examinationId}
+    </select>
+
+
+    <update id="updateExaminationItems">
+        UPDATE examination_items
+        <set>
+          <if test="examinationItems.examinationId != null">
+              examinationId = #{examinationItems.examinationId},
+          </if>
+          <if test="examinationItems.isCorrect != null">
+              isCorrect = #{examinationItems.isCorrect},
+          </if>
+          <if test="examinationItems.itemTitle != null">
+              itemTitle = #{examinationItems.itemTitle},
+          </if>
+        </set>
+        WHERE id = #{examinationItems.id}
+    </update>
+
+    <insert id="addExaminationItems" parameterType="com.magic.aimai.business.entity.ExaminationItems">
+        INSERT INTO examination_items (itemTitle, isCorrect, examinationId,sortNum)
+        VALUES (#{itemTitle}, #{isCorrect}, #{examinationId},#{sortNum})
+    </insert>
+
+    <insert id="batchAddExaminationItems">
+        INSERT INTO examination_items (itemTitle, isCorrect, examinationId,sortNum)
+        VALUES
+        <foreach collection="examinationItemsList" index="index" item="examinationItems" separator=",">
+            (#{examinationItems.itemTitle}, #{examinationItems.isCorrect}, #{examinationItems.examinationId}
+            , #{examinationItems.sortNum})
+        </foreach>
+    </insert>
+
+    <delete id="deteleByExaminationId" >
+        DELETE FROM examination_items WHERE examinationId = #{examinationId}
+    </delete>
+
+
+    <select id="info" resultMap="BaseExaminationItems">
+        select ei.*,e.title AS examinationName from examination_items ei, examination e
+        WHERE ei.examinationId = e.id
+        AND ei.id = #{id}
+    </select>
+</mapper>

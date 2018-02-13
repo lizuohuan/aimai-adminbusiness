@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICurriculumNewRecordMapper">
+
+
+
+    <insert id="addCurriculumNewRecord" parameterType="com.magic.aimai.business.entity.CurriculumNewRecord">
+        INSERT INTO curriculum_new_record (orderId, userId, updateTime)
+        VALUES(#{orderId}, #{userId}, now())
+    </insert>
+
+    <select id="queryCurriculumNewRecord" resultType="com.magic.aimai.business.entity.CurriculumNewRecord">
+        SELECT * FROM curriculum_new_record WHERE  userId = #{userId}
+    </select>
+
+    <update id="updateCurriculumNewRecord">
+        UPDATE curriculum_new_record SET orderId = #{orderId},updateTime=now() WHERE id = #{id}
+    </update>
+
+
+</mapper>

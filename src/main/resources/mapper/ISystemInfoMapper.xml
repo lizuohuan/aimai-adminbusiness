@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ISystemInfoMapper">
+
+
+
+    <insert id="addSystemInfo" useGeneratedKeys="true" keyColumn="id" parameterType="com.magic.aimai.business.entity.SystemInfo">
+        INSERT INTO system_info ( title, digest, newsId, `type`, createTime)
+        VALUES (#{title}, #{digest}, #{newsId}, #{type}, NOW())
+    </insert>
+
+    <insert id="addSystemInfoUser">
+        INSERT INTO system_info_user ( userId, systemInfoId)
+        VALUES (#{userId},#{systemInfoId})
+    </insert>
+
+    <select id="querySystemInfoIsCheck" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM  system_info_user WHERE userId = #{userId} AND systemInfoId = #{systemInfoId}
+    </select>
+
+
+    <select id="querySystemInfo" resultType="com.magic.aimai.business.entity.SystemInfo">
+        SELECT
+            sys.id,sys.createTime,sys.newsId,sys.type,n.isLink AS isLink,n.linkUrl AS linkUrl,n.image AS img,
+            (CASE WHEN sys.type = 1 THEN n.title ELSE sys.title END) AS title,
+            (CASE WHEN sys.type = 1 THEN n.digest ELSE sys.digest END) AS digest,
+            (IF(sysu.id IS NULL, 0 , 1)) AS isChecked
+        FROM
+            system_info sys
+        LEFT JOIN system_info_user sysu ON sys.id = sysu.systemInfoId AND sysu.userId = #{userId}
+        LEFT JOIN  news n ON sys.newsId = n.id
+        ORDER BY sys.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countCheckInfo" resultType="com.magic.aimai.business.entity.SystemInfo">
+        SELECT
+            sys.id,sys.createTime,sys.newsId,sys.type,
+            (IF(sysu.id IS NULL, 0 , 1)) AS isChecked
+        FROM
+            system_info sys
+        LEFT JOIN system_info_user sysu ON sys.id = sysu.systemInfoId AND sysu.userId = #{userId}
+    </select>
+
+    <select id="countSystemInfo" resultType="java.lang.Integer">
+        SELECT
+            COUNT(0)
+        FROM
+            system_info sys
+        LEFT JOIN system_info_user sysu ON sys.id = sysu.systemInfoId AND sysu.userId = #{userId}
+        LEFT JOIN  news n ON sys.newsId = n.id
+    </select>
+
+    <delete id="delete">
+        DELETE FROM system_info WHERE newsId = #{newsId} AND type = #{type}
+    </delete>
+
+    <delete id="deleteForUser">
+         DELETE FROM system_info_user WHERE systemInfoId IN (select s.id from system_info s WHERE s.newsId = #{newsId} AND s.type = #{type} )
+    </delete>
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IVideoStatusMapper">
+
+
+
+    <update id="updateVideoStatus">
+        UPDATE video_status
+        <set>
+            <if test="videoStatus.seconds != null">
+                `seconds` = #{videoStatus.seconds},
+            </if>
+            <if test="videoStatus.status != null">
+                `status` = #{videoStatus.status},
+            </if>
+        </set>
+        WHERE id = #{videoStatus.id}
+    </update>
+
+
+    <select id="judgeExamination" resultType="java.util.HashMap">
+        SELECT
+        (
+        SELECT COUNT(0) FROM papers p WHERE p.type = 1 AND p.targetId = (
+        SELECT cw.curriculumId FROM  course_ware cw,videos v WHERE  v.courseWareId = cw.id AND v.id = #{videoId})) AS isSimulationExercise,
+
+        (
+        SELECT COUNT(0) FROM papers p WHERE p.type = 2 AND p.targetId = (
+        SELECT cw.curriculumId FROM  course_ware cw,videos v WHERE  v.courseWareId = cw.id AND v.id = #{videoId})) AS isExaminationQuestion
+    </select>
+
+    <select id="judge" resultType="java.util.HashMap">
+        SELECT
+        IF(
+        (SELECT COUNT(DISTINCT vs.videoId) FROM video_status vs WHERE vs.videoId IN (SELECT v.id FROM course_ware cw,videos v WHERE v.courseWareId = cw.id AND v.id = #{videoId} ) AND vs.`status`=2)
+         = (SELECT COUNT(0) FROM course_ware cw,videos v WHERE v.courseWareId = cw.id AND v.id = #{videoId})
+        ,
+        -- 如果该课件下的视频播放完成后，查询是否有练习题
+        (SELECT CASE WHEN COUNT(0) = 0 THEN 0 WHEN COUNT(0) > 0 THEN 1 END FROM papers p WHERE p.type = 0 AND p.targetId = (SELECT v.courseWareId FROM videos v WHERE  v.id = #{videoId} ))
+        ,
+        0
+        ) AS isShowExercises,
+
+        IF(
+        (SELECT COUNT(0) FROM course_ware cw WHERE cw.curriculumId = (SELECT cww.curriculumId FROM course_ware cww WHERE id = (SELECT v.courseWareId FROM videos v WHERE v.id = #{videoId}) ) AND cw.isValid = 1)
+        =
+        (SELECT COUNT(DISTINCT cw.id) FROM video_status vs,course_ware cw,videos v WHERE v.id = vs.videoId AND v.courseWareId = cw.id AND vs.`status`=2 AND cw.isValid = 1 AND v.id = #{videoId})
+        ,
+        1
+        ,
+        0
+        ) AS isFinish
+    </select>
+
+    <insert id="addVideoStatus" parameterType="com.magic.aimai.business.entity.VideoStatus">
+        INSERT  INTO video_status (videoId, userId, `status`, seconds, createTime,orderId)
+        VALUES (#{videoId}, #{userId}, #{status}, #{seconds}, NOW(),#{orderId})
+    </insert>
+
+
+    <select id="queryNewStatus" resultType="com.magic.aimai.business.entity.VideoStatus">
+        SELECT *
+        FROM video_status
+        WHERE userId = #{userId}
+        AND videoId = #{videoId}
+        AND orderId = #{orderId}
+        ORDER BY id DESC
+        LIMIT 0,1
+    </select>
+
+    <select id="queryVideoStatus" resultType="com.magic.aimai.business.entity.VideoStatus">
+        SELECT *
+        FROM video_status
+        WHERE userId = #{userId}
+        AND videoId = #{videoId}
+        AND orderId = #{orderId}
+        AND `status` = #{status}
+    </select>
+
+    <select id="queryNewStatusByUserId" resultType="com.magic.aimai.business.entity.VideoStatus" parameterType="map">
+        SELECT *
+        FROM video_status
+        WHERE
+        videoId = #{videoId}
+        <if test="userId != null">
+            AND userId = #{userId}
+        </if>
+        <if test="orderId != null">
+            AND orderId = #{orderId}
+        </if>
+        ORDER BY id DESC
+        LIMIT 0,1
+    </select>
+
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICompanyMapper">
+
+
+
+
+    <select id="info" resultType="com.magic.aimai.business.entity.Company">
+        SELECT * FROM company limit 0,1
+    </select>
+
+
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.Company">
+        UPDATE company SET
+        address = #{address},
+        introduce = #{introduce},
+        name = #{name},
+        logo = #{logo},
+        mobile = #{mobile},
+        email = #{email},
+        fax = #{fax},
+        url = #{url}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

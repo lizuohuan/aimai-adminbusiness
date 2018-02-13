@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICityMapper">
+
+    <resultMap id="BaseCity" type="com.magic.aimai.business.entity.City">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="name" property="name" javaType="java.lang.String"/>
+        <result column="parentId" property="parentId" javaType="java.lang.Integer"/>
+        <result column="shortName" property="shortName" javaType="java.lang.String"/>
+        <result column="levelType" property="levelType" javaType="java.lang.Integer"/>
+        <result column="cityCode" property="cityCode" javaType="java.lang.String"/>
+        <result column="zipCode" property="zipCode" javaType="java.lang.String"/>
+        <result column="mergerName" property="mergerName" javaType="java.lang.String"/>
+        <result column="pinYin" property="pinYin" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="queryCityByName" resultMap="BaseCity">
+        SELECT * FROM  citys WHERE `name` = #{cityName} AND levelType = 2
+    </select>
+
+    <select id="queryCitys" resultMap="BaseCity">
+        SELECT * FROM citys
+        WHERE 1=1
+        AND parentId IN
+        <foreach collection="cIds" index="index" item="cId" open="(" close=")" separator=",">
+            #{cId}
+        </foreach>
+        GROUP BY id
+
+
+    </select>
+
+
+    <select id="queryCityByLevel" resultMap="BaseCity">
+        SELECT id FROM citys
+        WHERE levelType = 3
+        <if test="levelType == 1">
+            AND parentId IN (SELECT cc.id FROM  citys cc WHERE  cc.levelType = 2 AND cc.parentId = #{cityId})
+        </if>
+        <if test="levelType == 2">
+            AND parentId = #{cityId}
+        </if>
+    </select>
+
+    <select id="queryCityByItems" resultMap="BaseCity">
+        SELECT * FROM  citys WHERE mergerName LIKE '%${cityName}%'
+    </select>
+
+
+    <select id="queryCityByParentIds" resultMap="BaseCity">
+        SELECT * FROM  citys cc
+        WHERE 1=1
+        <if test="levelType == 1">
+            AND cc.id IN (
+                  SELECT id FROM citys WHERE levelType = 3 AND parentId IN (SELECT ss.id FROM citys ss  WHERE ss.levelType = 2 AND
+                  ss.parentId IN (
+                        <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                            #{cityId}
+                        </foreach>
+                   ))
+            )
+        </if>
+        <if test="levelType == 2">
+            AND cc.id IN (
+                SELECT id FROM citys WHERE levelType = 3 AND parentId IN (
+                    <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                        #{cityId}
+                    </foreach>
+                )
+            )
+        </if>
+        <if test="levelType == 3">
+            AND cc.id IN (
+            <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                #{cityId}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="queryCityByParentId" resultType="com.magic.aimai.business.entity.City">
+        SELECT * FROM citys
+        WHERE 1=1
+        <if test="cityId != null">
+            AND parentId = #{cityId}
+        </if>
+        <if test="levelType != null">
+            AND levelType = #{levelType}
+        </if>
+    </select>
+
+    <select id="queryAll" resultType="com.magic.aimai.business.entity.City">
+        SELECT * FROM citys
+    </select>
+
+    <select id="queryCity" resultType="com.magic.aimai.business.entity.City">
+        SELECT * FROM citys WHERE id = #{cityId}
+    </select>
+
+
+
+    <select id="queryCityId" resultType="com.magic.aimai.business.entity.City">
+        SELECT
+            t.id,
+            t.parentId AS townId,
+            (SELECT parentId FROM citys WHERE id = t.parentId) AS provinceId
+        FROM
+            citys t
+        WHERE
+            id = #{id}
+    </select>
+
+
+
+
+    <select id="getThreeId" resultType="com.magic.aimai.business.entity.City">
+        SELECT
+        /*区县*/
+        CASE t.levelType
+          WHEN 0 THEN ''
+          WHEN 1 THEN ''
+          WHEN 2 THEN ''
+          ELSE t.id END AS id,
+        /*市*/
+        CASE t.levelType
+          WHEN 0 THEN ''
+          WHEN 1 THEN ''
+          WHEN 2 THEN t.id
+          ELSE t.parentId END AS townId,
+        /*省*/
+        CASE t.levelType
+          WHEN 0 THEN ''
+          WHEN 1 THEN t.id
+          WHEN 2 THEN t.parentId
+          ELSE (SELECT parentId FROM citys WHERE id = t.parentId) END AS provinceId
+        FROM
+        citys t
+        WHERE
+        id = #{id}
+    </select>
+
+
+</mapper>

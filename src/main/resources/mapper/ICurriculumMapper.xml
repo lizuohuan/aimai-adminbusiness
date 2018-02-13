@@ -1,0 +1,1469 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICurriculumMapper">
+
+
+
+    <resultMap id="BaseCurriculum" type="com.magic.aimai.business.entity.Curriculum">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="curriculumDescribe" property="curriculumDescribe" javaType="java.lang.String"/>
+        <result column="year" property="year" javaType="java.util.Date"/>
+        <result column="cover" property="cover" javaType="java.lang.String"/>
+        <result column="coverH" property="coverH" javaType="java.lang.String"/>
+        <result column="tradeId" property="tradeId" javaType="java.lang.Integer"/>
+        <result column="cityId" property="cityId" javaType="java.lang.Integer"/>
+        <result column="curriculumStageId" property="curriculumStageId" javaType="java.lang.Integer"/>
+        <result column="price" property="price" javaType="java.lang.Double"/>
+        <result column="curriculumTypeId" property="curriculumTypeId" javaType="java.lang.Integer"/>
+        <result column="releaseStatus" property="releaseStatus" javaType="java.lang.Integer"/>
+        <result column="releaseTime" property="releaseTime" javaType="java.util.Date"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+        <result column="studyStartTime" property="studyStartTime" javaType="java.util.Date"/>
+        <result column="studyEndTime" property="studyEndTime" javaType="java.util.Date"/>
+        <result column="releaseUserId" property="releaseUserId" javaType="java.lang.Integer"/>
+        <result column="isValid" property="isValid" javaType="java.lang.Integer"/>
+        <result column="type" property="type" javaType="java.lang.Integer"/>
+        <result column="isRecommend" property="isRecommend" javaType="java.lang.Integer"/>
+        <result column="orderId" property="orderId" javaType="java.lang.Integer"/>
+        <result column="sortNum" property="sortNum" javaType="java.lang.Integer"/>
+        <result column="parId" property="parId" javaType="java.lang.Integer"/>
+        <result column="orderId" property="orderId" javaType="java.lang.Integer"/>
+        <result column="videoNum" property="videoNum" javaType="java.lang.Integer"/>
+        <result column="studyNum" property="studyNum" javaType="java.lang.Integer"/>
+        <result column="lowSeconds" property="lowSeconds" javaType="java.lang.Integer"/>
+        <result column="hdSeconds" property="hdSeconds" javaType="java.lang.Integer"/>
+        <result column="expendSeconds" property="expendSeconds" javaType="java.lang.Integer"/>
+        <result column="isOwn" property="isOwn" javaType="java.lang.Integer"/>
+        <result column="isPass" property="isPass" javaType="java.lang.Integer"/>
+        <result column="isHavePaper" property="isHavePaper" javaType="java.lang.Integer"/>
+        <result column="passTime" property="passTime" javaType="java.util.Date"/>
+        <result column="examTime" property="examTime" javaType="java.util.Date"/>
+        <result column="number" property="number" javaType="java.lang.Integer"/>
+        <result column="allocationNum" property="allocationNum" javaType="java.lang.Integer"/>
+        <result column="countNum" property="countNum" javaType="java.lang.Integer"/>
+        <result column="courseWareNum" property="courseWareNum" javaType="java.lang.Integer"/>
+        <result column="passScore" property="passScore" javaType="java.lang.Integer"/>
+        <result column="stageName" property="stageName" javaType="java.lang.String"/>
+        <result column="typeName" property="typeName" javaType="java.lang.String"/>
+        <result column="examinationTotalNum" property="examinationTotalNum" javaType="java.lang.Integer"/>
+        <result column="resultScore" property="resultScore" javaType="java.lang.Integer"/>
+        <result column="examinationNum" property="examinationNum" javaType="java.lang.Integer"/>
+        <result column="watchNum" property="watchNum" javaType="java.lang.Integer"/>
+        <result column="finishExamine" property="finishExamine" javaType="java.lang.Integer"/>
+        <result column="isExamination" property="isExamination" javaType="java.lang.Integer"/>
+        <result column="countUser" property="countUser" javaType="java.lang.Integer"/>
+        <result column="paperId" property="paperId" javaType="java.lang.Integer"/>
+        <result column="useTime" property="useTime" javaType="java.lang.Integer"/>
+        <result column="studyStatus" property="studyStatus" javaType="java.lang.Integer"/>
+        <result column="buyType" property="buyType" javaType="java.lang.Integer"/>
+        <result column="teacherName" property="teacherName" javaType="java.lang.String"/>
+        <result column="teacherIntroduce" property="teacherIntroduce" javaType="java.lang.String"/>
+        <result column="applyPerson" property="applyPerson" javaType="java.lang.String"/>
+    </resultMap>
+
+
+    <resultMap id="IncludeVideo" type="com.magic.aimai.business.entity.Curriculum" extends="BaseCurriculum">
+        <association property="courseWares" column="curriculumId=id,userId=userId,orderId=orderId" select="com.magic.aimai.business.mapper.ICourseWareMapper.queryCourseWareByCurriculum"/>
+    </resultMap>
+
+
+
+    <resultMap id="IncludeSimpleVideo" type="com.magic.aimai.business.entity.Curriculum" extends="BaseCurriculum">
+        <association property="courseWares" column="curriculumId=id" select="com.magic.aimai.business.mapper.ICourseWareMapper.querySimpleCourseWareByCurriculumId"/>
+    </resultMap>
+
+
+    <resultMap id="IncludePaper" type="com.magic.aimai.business.entity.Curriculum" extends="BaseCurriculum">
+        <!--<collection property="paperList" resultMap="com.magic.aimai.business.mapper.IPaperMapper.IncludeExamination2"/>-->
+        <collection property="paperList" resultMap="com.magic.aimai.business.mapper.IPaperMapper.BasePaper"/>
+    </resultMap>
+
+    <resultMap id="IncludeCourseWares" type="com.magic.aimai.business.entity.Curriculum" extends="BaseCurriculum">
+        <!--
+             WARNING - @mbggenerated
+           -->
+        <collection property="courseWares" ofType="com.magic.aimai.business.entity.CourseWare" columnPrefix="cw_"
+                    resultMap="com.magic.aimai.business.mapper.ICourseWareMapper.BaseCourseWare"/>
+        <collection property="faceRecordList" columnPrefix="fr_"
+                     resultMap="com.magic.aimai.business.mapper.IFaceRecordMapper.BaseFaceRecord"/>
+    </resultMap>
+
+
+    <select id="countCurriculumNotBuy" resultType="int">
+        SELECT
+          COUNT(0)
+        FROM
+            curriculum cc
+        WHERE
+            cc.id NOT IN (SELECT o.curriculumId FROM `order` o WHERE o.userId = #{companyId})
+    </select>
+
+
+    <select id="queryCurriculumNotBuy" resultMap="BaseCurriculum">
+        SELECT
+            cc.id,
+            cc.cover,
+            cc.curriculumName,
+            cc.`year`,
+            cs.stageName,
+            (SELECT COUNT(0) FROM course_ware cw, videos v WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId AND cw.isValid = 1 ) AS videoNum,
+            (SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw, videos v WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId AND cw.isValid = 1) AS hdSeconds
+        FROM
+            curriculum cc
+            LEFT JOIN curriculum_stage cs ON cs.id = cc.curriculumStageId
+        WHERE
+            cc.id NOT IN (SELECT o.curriculumId FROM `order` o WHERE o.userId = #{companyId})
+            ORDER BY cc.id DESC
+            <if test="limit != null and limitSize != null">
+                LIMIT #{limit},#{limitSize}
+            </if>
+    </select>
+
+    <select id="queryWaitAllocationCurriculumByUser" resultMap="BaseCurriculum">
+        SELECT
+        cc.id,cc.cover ,cc.curriculumName,
+        (SUM(o.number) -
+        (
+        SELECT IFNULL(SUM(cca.number),0) FROM curriculum_allocation cca ,`order` oo
+        WHERE cca.orderId = oo.id AND oo.userId = #{companyId} AND oo.payStatus = 1 AND oo.curriculumId = cc.id
+        )) AS `number`,
+        (SELECT COUNT(0) FROM  course_ware cw,videos v
+        WHERE  cw.id = v.id AND cw.curriculumId = cc.id AND cw.isValid = 1) AS videoNum
+        FROM `order` o ,curriculum cc
+        WHERE
+        o.curriculumId = cc.id
+        AND cc.isValid = 1
+        AND o.userId = #{companyId}
+        AND o.payStatus = 1
+        AND cc.id NOT IN (SELECT oo.curriculumId FROM curriculum_allocation cca,`order` oo WHERE cca.orderId = oo.id AND cca.userId = #{userId})
+        GROUP BY cc.id
+        ORDER BY o.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCurriculumByUser" resultMap="BaseCurriculum">
+        SELECT
+        cc.id,o.id AS orderId,
+        cc.cover,cc.curriculumName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v WHERE  cw.curriculumId = cc.id AND cw.id = v.courseWareId) AS videoNum,
+        (SELECT COUNT(0) FROM course_ware cw WHERE  cw.curriculumId = cc.id ) AS courseWareNum,
+        <!--             (SELECT COUNT(0) FROM course_ware cw WHERE cw.curriculumId = cc.id  AND
+                (SELECT COUNT(0) FROM videos v WHERE v.courseWareId = cw.id) =
+                (SELECT COUNT(0) FROM videos v,video_status vs WHERE v.courseWareId = cw.id AND v.id = vs.videoId
+                     AND vs.orderId = o.id AND vs.userId = #{userId} GROUP BY v.courseWareId) ) AS studyNum,-->
+        (SELECT COUNT(0) FROM finish_record fr,course_ware cw
+        WHERE fr.userId = o.userId AND fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id AND cw.curriculumId = o.curriculumId)
+        AS studyNum,
+        IF((SELECT COUNT(0) FROM finish_record fr WHERE fr.orderId = o.id AND fr.type = 1 AND fr.targetId = cc.id) > 0 , 1,0) AS isPass
+        FROM
+        `order` o,
+        curriculum_allocation cca,
+        curriculum cc
+        WHERE
+        cc.id = o.curriculumId
+        AND (
+        (
+        o.id = cca.orderId
+        AND cca.userId = #{userId}
+        )
+        OR o.userId = #{userId}
+        )
+        GROUP BY o.id
+    </select>
+
+
+    <select id="queryCurriculumError" resultType="com.magic.aimai.business.entity.Curriculum">
+        SELECT
+        o.curriculumId AS id,
+        o.id AS orderId,
+        cc.curriculumName,
+        (SELECT COUNT(0) FROM error_examination ee WHERE ee.orderId = o.id AND ee.userId = #{userId}) AS errorNum,
+        (SELECT COUNT(0) FROM course_ware cw,videos v WHERE cw.id = v.courseWareId AND cw.curriculumId = o.curriculumId) AS videoNum
+        FROM
+        `order` o,
+        curriculum_allocation cca,
+        curriculum cc
+        WHERE
+        o.curriculumId = cc.id
+        AND(
+        (
+        o.id = cca.orderId
+        AND cca.userId = #{userId}
+        )
+        OR o.userId = #{userId})
+        AND o.payStatus = 1
+        GROUP BY o.id
+        ORDER BY o.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="countCurriculumError" resultType="java.lang.Integer">
+        SELECT
+          COUNT(0)
+        FROM
+            `order` o,
+            curriculum_allocation cca,
+            curriculum cc
+        WHERE
+        o.curriculumId = cc.id
+        AND(
+            (
+                o.id = cca.orderId
+                AND cca.userId = #{userId}
+            )
+        OR o.userId = #{userId})
+        GROUP BY o.id
+    </select>
+
+    <select id="queryCurriculumPass" resultType="com.magic.aimai.business.entity.CurriculumStudy">
+        SELECT
+        cc.id,
+        cc.curriculumName,
+        o.id AS orderId,
+        p.useTime AS useTime,
+        (SELECT  p.id FROM  papers p WHERE  p.type = 2 AND p.targetId = cc.id) AS paperId,
+        (SELECT COUNT(0) FROM examination_paper ep WHERE ep.paperId = p.id) AS examinationNum,
+        (SELECT COUNT(0) FROM paper_record pr WHERE pr.paperId = p.id AND pr.orderId = o.id AND pr.userId = #{userId} AND pr.resultScore >= pr.passScore) AS passNum,
+        (SELECT COUNT(0) FROM paper_record pr WHERE pr.paperId = p.id AND pr.orderId = o.id AND pr.userId = #{userId} AND pr.resultScore <![CDATA[ < ]]>  pr.passScore) AS unPassNum,
+        (SELECT COUNT(0) FROM finish_record fr WHERE fr.type = 1 AND fr.userId = #{userId} AND fr.targetId = o.curriculumId AND fr.orderId = o.id) AS isFinishCurriculum
+        FROM
+        curriculum cc LEFT JOIN `order` o ON cc.id = o.curriculumId
+        LEFT JOIN  papers p ON p.type = 2 AND p.targetId = o.curriculumId
+
+        WHERE
+        o.id IN
+        (SELECT DISTINCT oo.id FROM `order` oo,curriculum_allocation ca WHERE ((oo.id = ca.orderId AND ca.userId = #{userId}) OR oo.userId = #{userId}) AND oo.payStatus = 1)
+        GROUP BY o.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countCurriculumPass" resultType="java.lang.Integer">
+        SELECT
+          COUNT(0)
+        FROM
+          curriculum cc LEFT JOIN `order` o ON cc.id = o.curriculumId
+        LEFT JOIN  papers p ON p.type = 2 AND p.targetId = o.curriculumId
+
+        WHERE
+          o.id IN
+        (SELECT DISTINCT o.id FROM `order` oo,curriculum_allocation ca WHERE (oo.id = ca.orderId AND ca.userId = #{userId}) OR oo.userId = #{userId})
+        GROUP BY cc.id
+    </select>
+
+    <select id="queryCurriculumStudyForExamination" resultType="com.magic.aimai.business.entity.CurriculumStudy">
+        SELECT
+        cc.id,
+        cc.curriculumName,
+        o.id AS orderId,
+        p.id AS paperId,
+        p.useTime AS useTime,
+        (SELECT COUNT(0) FROM examination_paper ep WHERE ep.paperId = p.id) AS examinationNum,
+        IF((SELECT COUNT(0) FROM paper_record pr WHERE pr.paperId = p.id AND pr.orderId = o.id AND pr.userId = #{userId}) > 0,1,0) AS isFinish,
+        (SELECT COUNT(0) FROM finish_record fr WHERE fr.type = 1 AND fr.userId = #{userId} AND fr.targetId = o.curriculumId AND fr.orderId = o.id) AS isFinishCurriculum
+        FROM
+        `order` o,
+        curriculum cc LEFT JOIN papers p ON p.targetId = cc.id AND p.type = 1
+        WHERE
+        cc.id = o.curriculumId
+        AND o.id IN (SELECT DISTINCT o.id FROM `order` o,curriculum_allocation ca WHERE (o.id = ca.orderId AND ca.userId = #{userId}) OR o.userId = #{userId})
+        GROUP BY o.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countCurriculumStudyForExamination" resultType="java.lang.Integer">
+        SELECT
+            COUNT(0)
+        FROM
+            papers p,
+            `order` o,
+            curriculum cc
+        WHERE
+            p.type = 1
+        AND p.targetId = o.curriculumId
+        AND cc.id = o.curriculumId
+        AND o.id IN (SELECT DISTINCT o.id FROM `order` o,curriculum_allocation ca WHERE (o.id = ca.orderId AND ca.userId = #{userId}) OR o.userId = #{userId})
+        GROUP BY p.id
+    </select>
+
+    <select id="statisticsCurriculum" resultType="com.magic.aimai.business.entity.StatisticsExamination">
+
+        SELECT
+            IFNULL((SELECT
+              SUM(pr.countNum)
+            FROM
+              papers p,paper_record pr
+            WHERE
+                pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND p.type = 0
+                AND pr.orderId = o.id
+                AND p.targetId IN
+                ( SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = o.curriculumId )
+                ),0) AS countNum,
+
+            IFNULL((SELECT
+              SUM(pr.correctNum) / SUM(pr.countNum)
+            FROM
+              papers p ,paper_record pr
+            WHERE
+                pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND p.type = 0
+                AND pr.orderId = o.id
+                AND p.targetId IN
+                ( SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = o.curriculumId )
+                ),0) AS correctPercent,
+
+            IFNULL((SELECT
+              SUM(pr.correctNum) / SUM(pr.countNum)
+            FROM
+              papers p ,paper_record pr
+            WHERE
+                pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND p.type = 1
+                AND pr.orderId = o.id
+                AND p.targetId = o.curriculumId ),0) AS simulationCorrectPercent,
+            IFNULL((SELECT
+              SUM(pr.countNum)
+            FROM
+              papers p ,paper_record pr
+            WHERE
+                pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND p.type = 1
+                AND pr.orderId = o.id
+                AND p.targetId = o.curriculumId ),0) AS simulationCountNum,
+
+
+            IFNULL((SELECT
+              COUNT(0)
+            FROM
+              papers p,paper_record pr
+            WHERE
+                 pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND pr.resultScore >= pr.passScore
+                AND p.type = 2
+                AND pr.orderId = o.id
+                AND p.targetId = o.curriculumId ),0) AS passNum,
+            IFNULL((SELECT
+              COUNT(0)
+            FROM
+              papers p,paper_record pr
+            WHERE
+                 pr.paperId = p.id
+                AND pr.userId = cnr.userId
+                AND pr.resultScore <![CDATA[ < ]]> pr.passScore
+                AND p.type = 2
+                AND pr.orderId = o.id
+                AND p.targetId = o.curriculumId ),0) AS nonPassNum,
+
+            (SELECT COUNT(0) FROM error_examination ee WHERE ee.userId = cnr.userId) AS errorNum
+
+
+        FROM
+          curriculum_new_record cnr,`order` o
+        WHERE
+            o.id = cnr.orderId
+            AND cnr.userId = #{userId}
+    </select>
+
+    <select id="queryCurriculumForSeclect" resultMap="BaseCurriculum">
+        SELECT id,curriculumName FROM  curriculum
+    </select>
+    <select id="countCurriculumFinish" resultType="java.lang.Integer">
+        SELECT
+            IF(
+                (SELECT
+                    COUNT(0)
+                FROM
+                    video_status vs,
+                    videos v,
+                    course_ware cw
+                WHERE
+                    vs.videoId = v.id
+                AND cw.id = v.courseWareId
+                AND vs.orderId = #{orderId}
+                AND vs.userId = #{userId}
+                AND cw.curriculumId=#{curriculumId}
+                AND vs.`status` = 2) = (SELECT COUNT(0) FROM videos v,course_ware cw WHERE v.courseWareId = cw.id AND cw.curriculumId = #{curriculumId})
+                ,1,0
+            )
+    </select>
+
+
+
+    <resultMap id="IncludeOtherUsers" type="com.magic.aimai.business.entity.Curriculum" extends="BaseCurriculum">
+        <association property="watchUsers" column="{orderId=orderId,companyId=companyId}" select="com.magic.aimai.business.mapper.IUserMapper.queryWatchUsers"/>
+        <association property="safeUsers" column="{orderId=orderId,companyId=companyId}" select="com.magic.aimai.business.mapper.IUserMapper.querySafeUsers"/>
+    </resultMap>
+
+    <select id="queryCurriculumByCompany" resultMap="IncludeOtherUsers">
+        SELECT
+        cc.id,cc.cover,cc.curriculumName,o.id AS orderId,o.userId AS companyId,
+        (SELECT COUNT(0) FROM course_ware cw,videos v WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId AND cw.isValid = 1) AS videoNum,
+        (SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw,videos v
+        WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId AND cw.isValid = 1) AS hdSeconds
+        FROM  `order` o,curriculum cc
+        WHERE o.curriculumId = cc.id
+        AND o.userId = #{companyId}
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCurriculumStudyByItemsOfCompany" resultType="com.magic.aimai.business.entity.CurriculumStudy">
+        SELECT
+        cc.id,cc.cover,cc.curriculumName,(cc.price) AS price,SUM(o.number) AS `number`,o.id AS orderId,cc.`year`,cs.stageName,
+        (
+        SELECT COUNT(0) FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS videoNum,
+
+
+        (
+        SELECT IFNULL(SUM(cca.number),0) FROM curriculum_allocation cca ,`order` oo
+        WHERE cca.orderId = oo.id AND oo.userId = #{userId} AND oo.payStatus = 1 AND oo.curriculumId = cc.id
+        ) allocationNum,
+        (SELECT COUNT(DISTINCT vs.userId) FROM video_status vs WHERE  vs.orderId = o.id AND
+        vs.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS watchNum,
+        (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr WHERE p.type = 2 AND p.id = pr.paperId AND pr.orderId = o.id AND
+        pr.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS finishExamine,
+        (SELECT COUNT(0) FROM users WHERE  parentId = o.userId) AS countUser
+        FROM
+        curriculum cc,
+        `order` o,
+        curriculum_stage cs
+        WHERE cc.id = o.curriculumId
+        AND cc.curriculumStageId = cs.id
+        AND o.userId = #{userId}
+        AND o.payStatus = 1
+        <!-- 二期改进 -->
+        GROUP BY cc.id
+        ORDER BY o.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryCurriculumStudyByItems" resultType="com.magic.aimai.business.entity.CurriculumStudy">
+        SELECT
+        a.*
+        FROM
+        (SELECT
+        cc.id,cc.`year`,cs.stageName,cc.cover,cc.curriculumName,o.id AS orderId,cca.studyStatus,
+        (
+        (SELECT COUNT(0) FROM examination_paper ep,papers p WHERE ep.paperId = p.id AND p.targetId = cc.id AND p.type IN (1,2))
+        +
+        (
+        SELECT COUNT(0) FROM examination_paper ep,papers p WHERE ep.paperId = p.id AND p.targetId IN
+        (SELECT cw.id FROM course_ware cw WHERE  cw.curriculumId = cc.id) AND p.type = 0
+        )
+        ) AS examinationNum,
+        (
+        SELECT COUNT(0) FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS videoNum,
+        (
+        SELECT COUNT(0) FROM course_ware cw WHERE cw.curriculumId=cc.id AND cw.isValid = 1 AND cw.ppt IS NOT NULL
+        ) AS pptNum,
+        (
+        SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS videoSeconds,
+        (
+        SELECT
+        SUM(
+        v.highDefinitionSeconds -
+        ( v.highDefinitionSeconds -
+        IFNULL((SELECT IFNULL(vs.seconds,0) FROM video_status vs WHERE vs.videoId = v.id AND vs.userId = cca.userId ORDER BY vs.id DESC LIMIT 0,1),0))
+        )
+        FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS finishSeconds,
+        (SELECT sp_count_pass(cca.userId,o.id)) AS passNum
+        FROM
+        curriculum cc,
+        curriculum_stage cs,
+        curriculum_allocation cca,
+        `order` o
+        WHERE cc.id = o.curriculumId
+        AND cs.id = cc.curriculumStageId
+        AND o.id = cca.orderId
+        AND cca.userId = #{userId}
+        UNION
+        SELECT
+        cc.id,cc.`year`,cs.stageName,cc.cover,cc.curriculumName,o.id AS orderId,o.studyStatus,
+        (
+        (SELECT COUNT(0) FROM examination_paper ep,papers p WHERE ep.paperId = p.id AND p.targetId = cc.id AND p.type IN (1,2))
+        +
+        (
+        SELECT COUNT(0) FROM examination_paper ep,papers p WHERE ep.paperId = p.id AND p.targetId IN
+        (SELECT cw.id FROM course_ware cw WHERE  cw.curriculumId = cc.id) AND p.type = 0
+        )
+        ) AS examinationNum,
+        (
+        SELECT COUNT(0) FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS videoNum,
+        (
+        SELECT COUNT(0) FROM course_ware cw WHERE cw.curriculumId=cc.id AND cw.isValid = 1 AND cw.ppt IS NOT NULL
+        ) AS pptNum,
+        (
+        SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS videoSeconds,
+        (
+        SELECT
+        SUM(
+        v.highDefinitionSeconds -
+        ( v.highDefinitionSeconds -
+        IFNULL((SELECT IFNULL(vs.seconds,0) FROM video_status vs WHERE vs.videoId = v.id AND vs.userId = o.userId AND vs.orderId = o.id ORDER BY vs.id DESC LIMIT 0,1),0))
+        )
+        FROM course_ware cw,videos v WHERE cw.curriculumId=cc.id AND cw.id = v.courseWareId AND cw.isValid = 1
+        ) AS finishSeconds,
+        (SELECT sp_count_pass(o.userId,o.id)) AS passNum
+        FROM
+        curriculum cc,
+        curriculum_stage cs,
+        `order` o
+        WHERE o.curriculumId = cc.id
+        AND cs.id = cc.curriculumStageId
+        AND o.userId = #{userId}
+        AND o.payStatus = 1
+        ) a
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+
+    <select id="queryCurriculumByCurriculumId" resultMap="IncludeSimpleVideo">
+        SELECT
+            cc.*,
+            cs.stageName,
+            (SELECT SUM(o.number) FROM `order` o WHERE o.curriculumId = cc.id AND o.userId = #{userId}) AS number,
+            (SELECT COUNT(DISTINCT cca.id) FROM  curriculum_allocation cca,`order` o WHERE  cca.orderId = o.id AND o.curriculumId = cc.id AND o.userId = #{userId} AND o.payStatus = 1 ) AS allocationNum,
+            (SELECT COUNT(DISTINCT vs.userId) FROM video_status vs,`order` o WHERE  vs.orderId = o.id AND o.curriculumId = cc.id AND o.userId = #{userId} AND
+                                    vs.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId}) AND o.payStatus = 1  ) AS watchNum,
+                                    (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr,`order` o WHERE p.type = 2 AND p.id = pr.paperId AND pr.orderId = o.id AND
+                                     o.curriculumId = cc.id AND o.userId = #{userId} AND pr.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS finishExamine,
+                                    (SELECT COUNT(0) FROM users u WHERE  u.parentId = #{userId} ) AS countUser
+        FROM
+            curriculum cc,
+            curriculum_stage cs
+        WHERE
+            cc.curriculumStageId = cs.id
+        AND cc.id = #{curriculumId}
+    </select>
+
+
+    <select id="queryCurriculumByOrderId" resultMap="IncludeVideo" >
+        SELECT
+        DISTINCT o.id AS orderId,cc.*,cs.stageName, #{userId} AS userId,#{orderId} AS orderId,
+        (SELECT tradeName FROM  trade WHERE  id = cc.tradeId) AS tradeName,
+        (SELECT stageName FROM curriculum_stage WHERE  id = cc.curriculumStageId) AS stageName,
+
+        IF((SELECT COUNT(0) FROM  papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = cc.id AND pr.orderId = o.id
+        AND pr.userId =o.userId AND pr.resultScore >= pr.passScore) > 0,1,0) AS isPass,
+
+        (SELECT pr.createTime FROM  papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = cc.id AND pr.orderId = o.id
+        AND pr.userId =o.userId AND pr.resultScore >= pr.passScore ORDER BY pr.id DESC LIMIT 0,1) AS passTime,
+        o.number,
+        (SELECT COUNT(0) FROM  curriculum_allocation cca WHERE  cca.orderId = o.id) AS allocationNum
+        <if test="roleId == 3 or roleId == 5">
+            ,(SELECT COUNT(DISTINCT vs.userId) FROM video_status vs WHERE  vs.orderId = o.id AND
+            vs.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS watchNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr WHERE p.type = 2 AND p.id = pr.paperId AND pr.orderId = o.id AND
+            pr.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS finishExamine,
+            (SELECT COUNT(0) FROM users WHERE  parentId = o.userId) AS countUser
+        </if>
+        FROM
+        curriculum cc,
+        curriculum_stage cs,
+        `order` o
+        WHERE
+        cc.id = o.curriculumId
+        AND cc.curriculumStageId = cs.id
+        AND o.userId = #{userId}
+        AND o.id = #{orderId}
+
+        UNION ALL
+
+        SELECT
+        DISTINCT o.id AS orderId,cc.*,cs.stageName, #{userId} AS userId,#{orderId} AS orderId,
+        (SELECT tradeName FROM  trade WHERE  id = cc.tradeId) AS tradeName,
+        (SELECT stageName FROM curriculum_stage WHERE  id = cc.curriculumStageId) AS stageName,
+
+        IF((SELECT COUNT(0) FROM  papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = cc.id AND pr.orderId = o.id
+        AND pr.userId =o.userId AND pr.resultScore >= pr.passScore) > 0,1,0) AS isPass,
+
+        (SELECT pr.createTime FROM  papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = cc.id AND pr.orderId = o.id
+        AND pr.userId =o.userId AND pr.resultScore >= pr.passScore ORDER BY pr.id DESC LIMIT 0,1) AS passTime,
+        o.number,
+        (SELECT COUNT(0) FROM  curriculum_allocation cca WHERE  cca.orderId = o.id) AS allocationNum
+        <if test="roleId == 3 or roleId == 5">
+            ,(SELECT COUNT(DISTINCT vs.userId) FROM video_status vs WHERE  vs.orderId = o.id AND
+            vs.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS watchNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr WHERE p.type = 2 AND p.id = pr.paperId AND pr.orderId = o.id AND
+            pr.userId IN (SELECT uu.id FROM users uu WHERE uu.parentId = #{userId})  ) AS finishExamine,
+            (SELECT COUNT(0) FROM users WHERE  parentId = o.userId) AS countUser
+        </if>
+        FROM
+        curriculum cc,
+        curriculum_stage cs,
+        `order` o,
+        curriculum_allocation cca
+        WHERE
+        cc.id = o.curriculumId
+        AND cc.curriculumStageId = cs.id
+        AND cca.userId = #{userId}
+        AND cca.orderId = o.id
+        AND o.id = #{orderId}
+
+    </select>
+
+    <select id="queryCurriculumById" resultMap="IncludeVideo" parameterType="map">
+        SELECT
+        cc.*,
+        #{userId} AS userId,
+        null AS orderId,
+        (SELECT tradeName FROM  trade WHERE  id = cc.tradeId) AS tradeName,
+        (SELECT stageName FROM curriculum_stage WHERE  id = cc.curriculumStageId) AS stageName
+        <if test="userId != null">
+            ,IF((SELECT COUNT(0) FROM `order` o WHERE o.curriculumId = cc.id AND userId = #{userId})>0,1,
+            IF((SELECT COUNT(0) FROM `order` o,curriculum_allocation ca WHERE o.id = ca.orderId AND o.curriculumId = cc.id AND ca.userId = #{userId}) > 0 ,1,0)
+            ) AS isOwn
+        </if>
+        FROM
+        curriculum cc
+        WHERE
+        cc.id = #{id}
+    </select>
+
+    <select id="queryBaseInfo" resultMap="BaseCurriculum">
+        SELECT * FROM curriculum WHERE id = #{id}
+    </select>
+
+    <select id="queryCurriculumByCollect" resultMap="BaseCurriculum">
+        SELECT cc.id,cc.curriculumName,cc.cover,cc.`year`,cs.stageName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum,
+        (
+        SELECT
+        vs.orderId
+        FROM
+        course_ware cw,
+        videos v,
+        video_status vs
+        WHERE
+        cw.id = v.id
+        AND v.id = vs.videoId
+        AND vs.userId = #{userId}
+        AND cw.curriculumId = cc.id
+        ORDER BY vs.id ASC
+        LIMIT 0,1
+        ) AS orderId
+        FROM  curriculum cc ,collect ct,curriculum_stage cs
+        WHERE
+        cc.id = ct.targetId
+        AND cs.id = cc.curriculumStageId
+        AND ct.userId = #{userId}
+        AND ct.`type` = 1
+        ORDER BY cc.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+
+    <select id="queryCurriculumByType" resultMap="IncludeSimpleVideo">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE
+        cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="curriculumStageId != null">
+            AND cc.curriculumStageId = #{curriculumStageId}
+        </if>
+        <if test="curriculumTypeId != null">
+            AND cc.curriculumTypeId = #{curriculumTypeId}
+        </if>
+        <if test="provinceId != null">
+            AND (cc.cityId IN (#{provinceId},#{townId},#{countyId},100000) or cc.cityId IS NULL )
+        </if>
+        <if test="tradeId != null">
+            AND (cc.tradeId = #{tradeId} or cc.tradeId IS NULL )
+        </if>
+        <if test="isRecommend != null">
+            AND cc.isRecommend = #{isRecommend}
+        </if>
+        AND cc.`type` = 1
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryCurriculumByTypeOfWeb" resultMap="IncludeSimpleVideo">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE
+        cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="curriculumStageId != null">
+            AND cc.curriculumStageId = #{curriculumStageId}
+        </if>
+        <if test="searchParam != null and searchParam != ''">
+            AND cc.curriculumName LIKE '%${searchParam}%'
+        </if>
+        <if test="curriculumTypeId != null">
+            AND cc.curriculumTypeId = #{curriculumTypeId}
+        </if>
+        <if test="provinceId != null">
+            AND (cc.cityId IN (#{provinceId},#{townId},#{countyId},100000) or cc.cityId IS NULL )
+        </if>
+        <if test="tradeId != null">
+            AND (cc.tradeId = #{tradeId} or cc.tradeId IS NULL  )
+        </if>
+        <if test="isRecommend != null">
+            AND cc.isRecommend = #{isRecommend}
+        </if>
+        AND cc.`type` = 1
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countCurriculumByType" resultType="java.lang.Integer">
+        SELECT
+        COUNT(0)
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="curriculumStageId != null">
+            AND cc.curriculumStageId = #{curriculumStageId}
+        </if>
+        <if test="searchParam != null and searchParam != ''">
+            AND cc.curriculumName LIKE '%${searchParam}%'
+        </if>
+        <if test="curriculumTypeId != null">
+            AND cc.curriculumTypeId = #{curriculumTypeId}
+        </if>
+        <if test="provinceId != null">
+            AND cc.cityId IN (#{provinceId},#{townId},#{countyId},100000)
+        </if>
+        <if test="tradeId != null">
+            AND ( cc.tradeId = #{tradeId}  OR cc.`tradeId` is NULL )
+        </if>
+        <if test="isRecommend != null">
+            AND cc.isRecommend = #{isRecommend}
+        </if>
+        AND cc.`type` = 1
+    </select>
+
+
+    <select id="queryCurriculumBySearch" resultMap="BaseCurriculum">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="userId != null">
+            AND cc.cityId IN (#{provinceId},#{townId},#{countyId},100000)
+        </if>
+        <if test="tradeId != null">
+            AND ( cc.tradeId = #{tradeId}  OR cc.`tradeId` is NULL )
+        </if>
+        <if test="searchParam != null">
+            AND cc.curriculumName LIKE '%${searchParam}%'
+        </if>
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCurriculumByRecommend" resultMap="IncludeSimpleVideo">
+
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="userId != null">
+            AND (cc.cityId IN (#{provinceId},#{townId},#{countyId},100000) or cc.cityId Is NULL)
+        </if>
+        <if test="tradeId != null">
+            AND (cc.tradeId = #{tradeId} or cc.tradeId Is NULL)
+        </if>
+        AND cc.isRecommend = 1
+        AND cc.type = 1
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCurriculumByItemsAndType" resultMap="IncludeSimpleVideo" parameterType="map">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="userId != null">
+            AND (cc.cityId IN (#{provinceId},#{townId},#{countyId},100000) or cc.cityId IS NUll)
+            <if test="tradeId != null">
+                AND (cc.tradeId = #{tradeId} or cc.tradeId IS NUll)
+            </if>
+        </if>
+        AND cc.curriculumTypeId = #{curriculumTypeId}
+        AND cc.`type` = 1
+        ORDER BY cc.sortNum,cc.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCurriculumByItems" resultMap="BaseCurriculum" parameterType="map">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE
+        cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        AND cc.cityId IN (#{provinceId},#{townId},#{countyId},100000)
+        AND cc.tradeId = #{tradeId}
+        AND cc.`type` = 1
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryCurriculumByTradeId" resultMap="BaseCurriculum">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        (SELECT COUNT(0) FROM course_ware cw,videos v
+        WHERE
+        cw.curriculumId = cc.id AND cw.id = v.courseWareId
+        AND cw.isValid = 1) AS videoNum
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        AND cc.cityId IN (#{provinceId},#{townId},#{countyId},100000)
+        AND cc.tradeId = #{tradeId}
+        AND cc.`type` = 1
+        ORDER BY cc.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryCurriculumByAudition" resultMap="IncludeSimpleVideo">
+        SELECT
+        cc.*, cs.stageName AS stageName,
+        ct.curriculumTypeName AS typeName,
+        SUM(v.highDefinitionSeconds) AS hdSeconds,
+        SUM(v.lowDefinitionSeconds) AS lowSeconds
+        FROM
+        curriculum cc
+        LEFT JOIN curriculum_stage cs ON cc.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = cc.curriculumTypeId
+        LEFT JOIN course_ware cw ON cw.curriculumId = cc.id
+        LEFT JOIN videos v ON v.courseWareId = cw.id
+        WHERE
+        cc.releaseStatus = 1
+        AND cc.isValid = 1
+        <if test="userId != null">
+            AND (cc.cityId IN (#{provinceId},#{townId},#{countyId},100000) or cc.cityId is NULL  )
+        </if>
+        <if test="tradeId != null">
+            AND (cc.tradeId = #{tradeId} or cc.tradeId is NULL)
+        </if>
+        AND cc.`type` = 0
+        GROUP BY cc.id
+        ORDER BY cc.sortNum DESC
+    </select>
+
+    <insert id="addCurriculum" useGeneratedKeys="true" keyColumn="id" parameterType="com.magic.aimai.business.entity.Curriculum">
+        INSERT INTO curriculum (curriculumName, curriculumDescribe, `year`, cover,coverH, tradeId, cityId, curriculumStageId, price, curriculumTypeId, releaseStatus,
+         releaseTime, createTime, releaseUserId, isValid, `type`,isRecommend,sortNum,teacherName,teacherIntroduce,applyPerson)
+         VALUES (#{curriculumName}, #{curriculumDescribe}, #{year}, #{cover},#{coverH}, #{tradeId}, #{cityId}, #{curriculumStageId},
+          #{price}, #{curriculumTypeId}, #{releaseStatus},
+         #{releaseTime}, NOW(), #{releaseUserId}, 1, #{type},#{isRecommend},#{sortNum},
+         #{teacherName},#{teacherIntroduce},#{applyPerson})
+    </insert>
+
+    <update id="updateCurriculum">
+        UPDATE curriculum
+        <set>
+            <if test="curriculum.teacherName != null">
+                `teacherName` = #{curriculum.teacherName},
+            </if>
+            <if test="curriculum.teacherIntroduce != null">
+                `teacherIntroduce` = #{curriculum.teacherIntroduce},
+            </if>
+            <if test="curriculum.applyPerson != null">
+                `applyPerson` = #{curriculum.applyPerson},
+            </if>
+            <if test="curriculum.sortNum != null">
+                `sortNum` = #{curriculum.sortNum},
+            </if>
+            <if test="curriculum.isRecommend != null">
+                `isRecommend` = #{curriculum.isRecommend},
+            </if>
+            <if test="curriculum.isValid != null">
+                `isValid` = #{curriculum.isValid},
+            </if>
+            <if test="curriculum.releaseUserId != null">
+                `releaseUserId` = #{curriculum.releaseUserId},
+            </if>
+            <if test="curriculum.releaseTime != null">
+                `releaseTime` = #{curriculum.releaseTime},
+            </if>
+            <if test="curriculum.releaseStatus != null">
+                `releaseStatus` = #{curriculum.releaseStatus},
+            </if>
+            <if test="curriculum.curriculumTypeId != null">
+                `curriculumTypeId` = #{curriculum.curriculumTypeId},
+            </if>
+            <if test="curriculum.price != null">
+                `price` = #{curriculum.price},
+            </if>
+            <if test="curriculum.curriculumStageId != null">
+                `curriculumStageId` = #{curriculum.curriculumStageId},
+            </if>
+            <if test="curriculum.cityId != null">
+                `cityId` = #{curriculum.cityId},
+            </if>
+            <if test="curriculum.tradeId != null">
+                `tradeId` = #{curriculum.tradeId},
+            </if>
+            <if test="curriculum.cover != null">
+                `cover` = #{curriculum.cover},
+            </if>
+            <if test="curriculum.coverH != null">
+                `coverH` = #{curriculum.coverH},
+            </if>
+            <if test="curriculum.year != null">
+                `year` = #{curriculum.year},
+            </if>
+            <if test="curriculum.curriculumDescribe != null">
+                curriculumDescribe = #{curriculum.curriculumDescribe},
+            </if>
+            <if test="curriculum.curriculumName != null">
+                curriculumName = #{curriculum.curriculumName},
+            </if>
+        </set>
+        WHERE id = #{curriculum.id}
+    </update>
+
+
+
+    <update id="updateForAdmin" parameterType="com.magic.aimai.business.entity.Curriculum">
+        UPDATE curriculum
+        <set>
+            `curriculumName` = #{curriculumName},
+            `year` = #{year},
+            `tradeId` = #{tradeId},
+            `curriculumStageId` = #{curriculumStageId},
+            `curriculumTypeId` = #{curriculumTypeId},
+            `type` = #{type},
+            `price` = #{price},
+            `sortNum` = #{sortNum},
+            `teacherName` = #{teacherName},
+            `teacherIntroduce` = #{teacherIntroduce},
+            `applyPerson` = #{applyPerson},
+            `curriculumDescribe` = #{curriculumDescribe},
+            `isRecommend` = #{isRecommend},
+            `releaseStatus` = #{releaseStatus},
+            `cover` = #{cover},
+            `coverH` = #{coverH},
+            `cityId` = #{cityId},
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="listForAdmin" resultMap="BaseCurriculum" parameterType="map">
+        SELECT
+        c.*,t.tradeName, cs.stageName , ct.curriculumTypeName AS typeName ,u.showName AS releaseUserName
+        FROM
+        curriculum c
+        LEFT JOIN curriculum_stage cs ON c.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = c.curriculumTypeId
+        LEFT JOIN trade t ON c.tradeId = t.id
+        LEFT JOIN users u ON c.releaseUserId = u.id
+        WHERE 1 = 1
+        and c.isValid = 1
+        <choose>
+            <when test="districtId != null">
+                AND c.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND c.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND c.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        <if test="id != null">
+            AND c.id  = #{id}
+        </if>
+        <if test="curriculumName != null and curriculumName != ''">
+            AND c.curriculumName Like '%${curriculumName}%'
+        </if>
+        <if test="releaseUserName != null and releaseUserName != ''">
+            AND u.showName Like '%${releaseUserName}%'
+        </if>
+        <if test="curriculumStageId != null">
+            AND c.curriculumStageId = #{curriculumStageId}
+        </if>
+        <if test="curriculumTypeId != null">
+            AND c.curriculumTypeId = #{curriculumTypeId}
+        </if>
+        <if test="isValid != null">
+            AND c.isValid = #{isValid}
+        </if>
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        <if test="tradeId != null">
+            AND c.tradeId = #{tradeId}
+        </if>
+        <if test="isRecommend != null">
+            AND c.isRecommend = #{isRecommend}
+        </if>
+        <if test="releaseStatus != null">
+            AND c.releaseStatus = #{releaseStatus}
+        </if>
+        <if test="year != null">
+            AND DATE_FORMAT(c.releaseStatus,'%Y-%m') = DATE_FORMAT(#{year},'%Y-%m')
+        </if>
+        <if test="releaseTimeStart != null">
+            AND c.releaseTime <![CDATA[ >= ]]> #{releaseTimeStart}
+        </if>
+        <if test="releaseTimeEnd != null">
+            AND c.releaseTime <![CDATA[ <= ]]> #{releaseTimeEnd}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        `c`.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM
+        curriculum c
+        LEFT JOIN curriculum_stage cs ON c.curriculumStageId = cs.id
+        LEFT JOIN curriculum_type ct ON ct.id = c.curriculumTypeId
+        LEFT JOIN trade t ON c.tradeId = t.id
+        LEFT JOIN users u ON c.releaseUserId = u.id
+        WHERE
+        1=1
+        and c.isValid = 1
+        <choose>
+            <when test="districtId != null">
+                AND c.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND c.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND c.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        <if test="id != null">
+            AND c.id  = #{id}
+        </if>
+        <if test="curriculumName != null and curriculumName != ''">
+            AND c.curriculumName Like '%${curriculumName}%'
+        </if>
+        <if test="releaseUserName != null and releaseUserName != ''">
+            AND u.showName Like '%${releaseUserName}%'
+        </if>
+        <if test="curriculumStageId != null">
+            AND c.curriculumStageId = #{curriculumStageId}
+        </if>
+        <if test="curriculumTypeId != null">
+            AND c.curriculumTypeId = #{curriculumTypeId}
+        </if>
+        <if test="isValid != null">
+            AND c.isValid = #{isValid}
+        </if>
+        <if test="type != null">
+            AND c.type = #{type}
+        </if>
+        <if test="tradeId != null">
+            AND c.tradeId = #{tradeId}
+        </if>
+        <if test="isRecommend != null">
+            AND c.isRecommend = #{isRecommend}
+        </if>
+        <if test="releaseStatus != null">
+            AND c.releaseStatus = #{releaseStatus}
+        </if>
+        <if test="year != null">
+            AND DATE_FORMAT(c.releaseStatus,'%Y') = DATE_FORMAT(#{year},'%Y')
+        </if>
+        <if test="releaseTimeStart != null">
+            AND c.releaseTime <![CDATA[ >= ]]> #{releaseTimeStart}
+        </if>
+        <if test="releaseTimeEnd != null">
+            AND c.releaseTime <![CDATA[ <= ]]> #{releaseTimeEnd}
+        </if>
+    </select>
+
+
+    <select id="listForAdminUser" resultMap="BaseCurriculum" parameterType="map">
+
+        SELECT ccc.*, IF(ccc.pId IS NOT NULL,1,0) AS isHavePaper,par.id AS parId,
+        IF(ccc.pId IS NOT NULL,
+            IF((SELECT COUNT(0) FROM paper_record pr
+              WHERE ccc.pId = pr.paperId AND pr.orderId = ccc.orderId
+              AND pr.type = 0 AND pr.userId =#{userId} AND pr.resultScore >= pr.passScore) > 0,1,0),
+            IF(par.id IS NOT NULL,
+                IF(par.resultScore >=  par.passScore,1,0),
+                IF(ccc.expendSeconds / ccc.hdSeconds >= 1,1,0))
+        ) AS isPass
+
+
+        FROM (
+        SELECT
+        c.*,o.id AS orderId,o.studyStatus2 AS studyStatus,o.buyType,
+        (SELECT vs.createTime FROM video_status vs WHERE vs.orderId = o.id ORDER BY vs.id ASC LIMIT 0,1 ) AS studyStartTime,
+        (SELECT fr.createTime FROM finish_record fr WHERE fr.orderId = o.id ORDER BY fr.id DESC LIMIT 0,1 ) AS studyEndTime,
+        IFNULL((SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw ,videos v WHERE cw.id = v.courseWareId AND c.id = cw.curriculumId),0) AS hdSeconds,
+        IFNULL((SELECT SUM(vs.seconds) FROM course_ware cw ,videos v ,video_status vs
+        WHERE cw.id = v.courseWareId AND v.id = vs.videoId AND vs.`status` IN (1,2) AND vs.orderId = o.id AND vs.userId = #{userId} ORDER BY vs.id DESC LIMIT 0,1 ),0) AS expendSeconds,
+        (SELECT p.id FROM papers p WHERE p.type = 2 AND p.targetId = c.id) AS pId
+        FROM
+        curriculum c ,
+        (SELECT o0.*,o0.studyStatus AS studyStatus2,0 AS buyType FROM `order` o0 WHERE o0.userId = #{userId} UNION
+        SELECT o1.*,ca.studyStatus AS studyStatus2,1 AS buyType FROM `order` o1 ,curriculum_allocation ca WHERE o1.id = ca.orderId AND ca.userId = #{userId}) o
+        WHERE c.id = o.curriculumId
+        and c.isValid = 1
+        group by o.id
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        c.sortNum DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+        ) ccc left join
+        (SELECT * FROM paper_record pr WHERE pr.type = 1) AS par on ccc.id = par.paperId
+    </select>
+
+
+    <select id="listForWebUser" resultMap="BaseCurriculum" parameterType="map">
+
+        SELECT ccc.*, IF(ccc.pId IS NOT NULL,1,0) AS isHavePaper,par.id AS parId,
+        IF(ccc.pId IS NOT NULL,
+            IF((SELECT COUNT(0) FROM paper_record pr
+              WHERE ccc.pId = pr.paperId AND pr.orderId = ccc.orderId
+              AND pr.type = 0 AND pr.userId =#{userId} AND pr.resultScore >= pr.passScore) > 0,1,0),
+            IF(par.id IS NOT NULL,
+                IF(par.resultScore >=  par.passScore,1,0),
+                IF(ccc.expendSeconds / ccc.hdSeconds >= 1,1,0))
+        ) AS isPass
+
+
+        FROM (
+        SELECT
+        c.*,o.id AS orderId,o.studyStatus2 AS studyStatus,o.buyType,
+        (SELECT vs.createTime FROM video_status vs WHERE vs.orderId = o.id ORDER BY vs.id ASC LIMIT 0,1 ) AS studyStartTime,
+        (SELECT fr.createTime FROM finish_record fr WHERE fr.orderId = o.id ORDER BY fr.id DESC LIMIT 0,1 ) AS studyEndTime,
+        IFNULL((SELECT SUM(v.highDefinitionSeconds) FROM course_ware cw ,videos v WHERE cw.id = v.courseWareId AND c.id = cw.curriculumId),0) AS hdSeconds,
+        IFNULL((SELECT SUM(vs.seconds) FROM course_ware cw ,videos v ,video_status vs
+        WHERE cw.id = v.courseWareId AND v.id = vs.videoId AND vs.`status` = 2 AND vs.orderId = o.id AND vs.userId = #{userId} ORDER BY vs.id DESC LIMIT 0,1 ),0) AS expendSeconds,
+        (SELECT p.id FROM papers p WHERE p.type = 2 AND p.targetId = c.id) AS pId
+        FROM
+        curriculum c ,
+        (SELECT o0.*,o0.studyStatus AS studyStatus2,0 AS buyType FROM `order` o0 WHERE o0.userId = #{userId} UNION
+        SELECT o1.*,ca.studyStatus AS studyStatus2,1 AS buyType FROM `order` o1 ,curriculum_allocation ca WHERE o1.id = ca.orderId AND ca.userId = #{userId}) o
+        WHERE c.id = o.curriculumId
+        and c.isValid = 1
+        group by o.id
+        ORDER BY c.sortNum DESC
+        <if test="limit != null and limitSize != null">
+            limit #{limit}, #{limitSize}
+        </if>
+        ) ccc left join
+        (SELECT * FROM paper_record pr WHERE pr.type = 1) AS par on ccc.id = par.paperId
+    </select>
+
+
+    <select id="listForAdminUserCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM
+        curriculum c ,
+        (SELECT o0.* FROM `order` o0 WHERE o0.userId = #{userId} UNION
+        SELECT o1.* FROM `order` o1 ,curriculum_allocation ca WHERE o1.id = ca.orderId AND ca.userId = #{userId}) o
+        WHERE c.id = o.curriculumId
+        and c.isValid = 1
+    </select>
+
+
+
+    <select id="listForPC" resultMap="IncludeCourseWares" parameterType="map">
+        SELECT
+        cu.* ,p5.id AS paperId,p5.useTime AS useTime
+        <if test="type == 0 or type == 3">
+            ,cw.id AS cw_id,cw.courseWareName AS cw_courseWareName,cw.cover AS cw_cover ,p5.id AS cw_paperId
+        </if>
+        <if test="type == 0">
+           ,IF((SELECT count(*) FROM finish_record fin WHERE fin.targetId = cw.id
+            AND fin.orderId = cu.orderId
+            AND fin.type = 0 AND fin.userId = #{userId}) > 0, 1 ,0) AS cw_isExamination
+        </if>
+        <if test="type == 1 or type == 2">
+           ,IF((SELECT count(*) FROM finish_record fin WHERE fin.targetId = cu.id
+            AND fin.orderId = cu.orderId
+            AND fin.type = 1 AND fin.userId = #{userId}) > 0, 1 ,0) AS isExamination
+        </if>
+        <choose>
+            <when test="type == 3">
+                ,(SELECT COUNT(DISTINCT ee.id) FROM error_examination ee ,examination_paper ep ,papers p
+                WHERE ee.orderId = cu.orderId
+                AND ee.examinationId=ep.examinationId
+                AND ep.paperId = p.id
+                AND p.id = p5.id
+                AND p.type = 0
+                AND p.targetId=cw.id
+                AND ee.userId = #{userId}
+                ) AS cw_examinationNum
+            </when>
+            <otherwise>
+                ,(SELECT pr.countNum AS examinationNum
+                FROM paper_record pr ,papers p
+                WHERE pr.paperId = p.id
+                AND pr.orderId = cu.orderId
+                <choose>
+                    <when test="type == 0">
+                        and cu.id = cw.curriculumId
+                        and p.targetId = cw.id
+                    </when>
+                    <otherwise>
+                        and cu.id = p.targetId
+                    </otherwise>
+                </choose>
+                ORDER BY pr.resultScore DESC
+                LIMIT 0,1) AS cw_examinationNum
+            </otherwise>
+        </choose>
+        <if test="type == 2">
+            ,(SELECT IF(pr.resultScore >=  pr.passScore,1,0) AS isPass
+            FROM paper_record pr ,papers p
+            WHERE pr.paperId = p.id
+            AND pr.orderId = cu.orderId
+            and cu.id = p.targetId
+            ORDER BY pr.resultScore DESC
+            LIMIT 0,1) AS isPass,
+            (SELECT COUNT(*)
+            FROM paper_record pr ,papers p
+            WHERE pr.paperId = p.id
+            AND pr.orderId = cu.orderId
+            and cu.id = p.targetId) AS examNum
+        </if>
+        ,
+        (select count(*) from examination_paper ep where ep.paperId = p5.id) AS
+        <choose>
+            <when test="type == 3 or type == 0">
+                cw_examinationTotalNum
+            </when>
+            <otherwise>
+                examinationTotalNum
+            </otherwise>
+        </choose>
+
+        FROM
+        (select cus.*,o.id AS orderId ,cs.stageName from `order` o ,curriculum cus ,curriculum_stage cs,curriculum_allocation cca,papers p
+        where o.curriculumId = cus.id
+        AND(
+        (
+        o.id = cca.orderId
+        AND cca.userId = #{userId}
+        )
+        OR o.userId = #{userId}
+        )
+        and cs.id = cus.curriculumStageId
+        AND o.payStatus = 1
+        group by o.id
+        <if test="pageArgs != null">
+            LIMIT #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+        ) cu
+
+        <if test="type == 0 or type == 3">
+            ,course_ware cw
+        </if>
+
+        <if test="type == 3">
+            ,examination_paper ep5
+            ,error_examination ee5
+        </if>
+
+        ,papers p5
+        WHERE 1 = 1
+        <if test="type == 0">
+            AND cu.id = cw.curriculumId
+            AND p5.targetId = cw.id
+        </if>
+        <if test="type == 3">
+            AND cu.id = cw.curriculumId
+            AND ep5.paperId = p5.id
+            AND p5.targetId = cw.id
+            AND ee5.examinationId = ep5.examinationId
+            AND ee5.userId = #{userId}
+            AND ee5.orderId = cu.orderId
+        </if>
+        <if test="type == 1 or type == 2">
+            AND p5.targetId = cu.id
+        </if>
+        <if test="type == 0">
+            AND p5.type = 0
+        </if>
+        <if test="type == 1">
+            AND p5.type = 1
+        </if>
+        <if test="type == 2">
+            AND p5.type = 2
+        </if>
+        ORDER BY cu.orderId
+    </select>
+
+
+    <select id="isBuy" resultType="integer">
+        select COUNT(*) from `order` o WHERE o.curriculumId = #{curriculumId} and o.userIsValid = 1 and o.userId = #{userId}
+    </select>
+
+
+    <delete id="delete">
+        DELETE FROM curriculum WHERE id = #{id}
+    </delete>
+
+
+    <select id="getUserCurriculum" resultMap="BaseCurriculum" >
+        select cu.*,p.id AS paperId , o.id AS orderId , p.passScore from curriculum cu ,papers p,
+         (SELECT o0.* FROM `order` o0 WHERE o0.userId = #{userId} UNION
+        SELECT o1.* FROM `order` o1 ,curriculum_allocation ca WHERE o1.id = ca.orderId AND ca.userId = #{userId}) o
+        WHERE cu.id = p.targetId
+        AND p.type = 2
+         AND o.id NOT IN (select pr.orderId from paper_record pr , papers pa
+         WHERE  pa.id = pr.paperId AND pr.type = 0 AND pa.type = 2 AND pr.userId = #{userId})
+        group by o.id
+    </select>
+</mapper>

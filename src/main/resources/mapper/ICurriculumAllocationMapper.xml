@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICurriculumAllocationMapper">
+
+
+
+    <insert id="batchAddAllocation">
+        INSERT INTO curriculum_allocation ( userId, orderId, number, createTime)
+        VALUES
+        <foreach collection="allocations" index="index" item="allocation" separator=",">
+            (#{allocation.userId}, #{allocation.orderId}, #{allocation.number}, now())
+        </foreach>
+    </insert>
+
+
+    <insert id="addCurriculumAllocation" parameterType="com.magic.aimai.business.entity.CurriculumAllocation">
+        INSERT INTO curriculum_allocation ( userId, orderId, number, createTime ,isCanStudy)
+        VALUES ( #{userId}, #{orderId}, #{number}, now(),1)
+    </insert>
+
+    <select id="querySurplusAllocation" resultType="java.lang.Integer">
+        SELECT
+            (
+                o.number
+            - IFNULL((SELECT SUM(ca.number) FROM curriculum_allocation ca WHERE ca.orderId = o.id ),0)
+            )
+        FROM
+            `order` o
+        WHERE o.id = #{orderId}
+    </select>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.CurriculumAllocation" parameterType="map">
+        SELECT ca.*,u.showName AS userName ,u.phone
+        FROM curriculum_allocation ca ,users u
+        WHERE ca.userId = u.id
+        AND ca.orderId = #{orderId}
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        ca.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM curriculum_allocation ca ,users u
+        WHERE ca.userId = u.id
+        AND ca.orderId = #{orderId}
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+    </select>
+
+
+    <update id="updateIsCanStudy" >
+        update curriculum_allocation set
+        studyStatus  = #{studyStatus}
+        where orderId = #{orderId}
+        and userId = #{userId}
+    </update>
+    <update id="updateIsCanStudy2" >
+        update curriculum_allocation set
+        studyStatus  = #{studyStatus}
+        where id = #{id}
+    </update>
+</mapper>

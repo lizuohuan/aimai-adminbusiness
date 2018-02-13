@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICourseWareMapper">
+
+
+    <resultMap id="BaseCourseWare" type="com.magic.aimai.business.entity.CourseWare">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="courseWareName" property="courseWareName" javaType="java.lang.String"/>
+        <result column="isValid" property="isValid" javaType="java.lang.Integer"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+        <result column="createUserId" property="createUserId" javaType="java.lang.Integer"/>
+        <result column="paperId" property="paperId" javaType="java.lang.Integer"/>
+        <result column="ppt" property="ppt" javaType="java.lang.String"/>
+        <result column="curriculumId" property="curriculumId" javaType="java.lang.Integer"/>
+        <result column="teacherName" property="teacherName" javaType="java.lang.String"/>
+        <result column="teacherIntroduce" property="teacherIntroduce" javaType="java.lang.String"/>
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="applyPerson" property="applyPerson" javaType="java.lang.String"/>
+        <result column="cover" property="cover" javaType="java.lang.String"/>
+        <result column="hdSeconds" property="hdSeconds" javaType="java.lang.Integer"/>
+        <result column="expendSeconds" property="expendSeconds" javaType="java.lang.Integer"/>
+        <result column="videoNum" property="videoNum" javaType="java.lang.Integer"/>
+        <result column="examinationNum" property="examinationNum" javaType="java.lang.Integer"/>
+        <result column="examinationTotalNum" property="examinationTotalNum" javaType="java.lang.Integer"/>
+        <result column="isFinish" property="isFinish" javaType="java.lang.Integer"/>
+        <result column="studyStartTime" property="studyStartTime" javaType="java.util.Date"/>
+        <result column="isExamination" property="isExamination" javaType="java.lang.Integer"/>
+        <result column="studyEndTime" property="studyEndTime" javaType="java.util.Date"/>
+    </resultMap>
+
+    <resultMap id="IncludeVideo" type="com.magic.aimai.business.entity.CourseWare" extends="BaseCourseWare">
+        <association property="videos" column="courseWareId=id,userId=userId,orderId=orderId" select="com.magic.aimai.business.mapper.IVideoMapper.queryVideoByCourseWare"/>
+    </resultMap>
+
+    <resultMap id="IncludeSimpleVideo" type="com.magic.aimai.business.entity.CourseWare" extends="BaseCourseWare">
+        <association property="videos" column="courseWareId=id" select="com.magic.aimai.business.mapper.IVideoMapper.querySimpleVideoByCourseWare"/>
+    </resultMap>
+
+    <select id="querySimpleCourseWareByCurriculumId" resultMap="IncludeSimpleVideo">
+        SELECT * FROM course_ware cw WHERE cw.curriculumId = #{curriculumId}
+    </select>
+
+    <select id="queryCourseWareError" resultType="com.magic.aimai.business.entity.ExaminationList">
+        SELECT
+            cw.id AS courseWareId,
+            cw.courseWareName,
+            o.id AS orderId,
+            (SELECT COUNT(0) FROM papers p,examination_paper ep WHERE p.type = 0 AND p.targetId = cw.id AND ep.paperId = p.id) AS examinationNum,
+            (SELECT COUNT(DISTINCT ee.id) FROM error_examination ee,papers p,examination_paper ep
+                WHERE ee.orderId = o.id AND ee.examinationId=ep.examinationId AND ep.paperId = p.id AND p.type = 0 AND p.targetId=cw.id AND ee.userId = #{userId}) AS errorNum
+        FROM
+            course_ware cw
+        LEFT JOIN `order` o ON o.curriculumId = cw.curriculumId
+        WHERE o.id = #{orderId}
+        AND o.payStatus = 1
+        GROUP BY cw.id
+        ORDER BY cw.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="statisticsCourseWare" resultType="com.magic.aimai.business.entity.ExaminationList">
+        SELECT
+            cw.id AS courseWareId,
+            cw.courseWareName,
+            o.id AS orderId,
+            (SELECT  p.id FROM  papers p WHERE  p.type = 0 AND p.targetId = cw.id) AS paperId,
+            (SELECT  p.useTime FROM  papers p WHERE  p.type = 0 AND p.targetId = cw.id) AS useTime,
+            (SELECT COUNT(0) FROM papers pp,examination_paper epp WHERE pp.id = epp.paperId AND pp.type = 0 AND pp.targetId = cw.id)  AS examinationNum,
+        IF(( SELECT COUNT(0) FROM paper_record pr,papers p WHERE p.type = 0 AND p.targetId = cw.id AND pr.paperId = p.id AND pr.orderId = o.id AND pr.userId = #{userId} ) > 0, 1, 0 ) AS isExamination,
+        IF((SELECT COUNT(0) FROM videos v,video_status vs WHERE v.id = vs.videoId AND vs.orderId = o.id AND vs.userId = #{userId} AND v.courseWareId = cw.id AND vs.`status` = 2)
+            =
+            (SELECT COUNT(0) FROM videos v WHERE v.courseWareId = cw.id),1,0) AS isStudy
+        FROM
+            course_ware cw
+            ,`order` o
+
+        WHERE
+            cw.curriculumId = o.curriculumId
+        AND o.id = #{orderId}
+        GROUP BY
+            cw.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countStatisticsCourseWare" resultType="java.lang.Integer">
+        SELECT
+            COUNT(0)
+        FROM
+            course_ware cw
+            ,`order` o
+
+        WHERE
+            cw.curriculumId = o.curriculumId
+        AND o.id = #{orderId}
+        GROUP BY
+            cw.id
+    </select>
+
+    <select id="queryCourseWareByCurriculumId" resultMap="BaseCourseWare">
+        SELECT
+          cw.id,cw.courseWareName,
+          (SELECT COUNT(0) FROM papers p ,examination_paper ep WHERE p.id = ep.paperId AND p.`type` = 0 AND p.targetId = cw.id) AS examinationNum,
+          IF((SELECT COUNT(0) FROM paper_record pr,papers p WHERE pr.orderId = #{orderId} AND pr.userId = #{userId} AND p.id = pr.paperId AND p.type = 0 AND p.targetId = cw.id) > 0,1,0) AS isFinish
+        FROM  course_ware cw
+        WHERE  cw.isValid = 1 AND cw.curriculumId = #{curriculumId}
+    </select>
+
+    <select id="queryBaseCourseWare" resultMap="BaseCourseWare">
+        SELECT cw.id,cw.courseWareName,cc.curriculumName FROM  course_ware cw,curriculum cc WHERE cw.curriculumId = cc.id
+    </select>
+
+    <select id="countCourseWareFinish" resultType="java.lang.Integer">
+        SELECT
+            IF(
+                (SELECT
+                    COUNT(0)
+                FROM
+                    video_status vs,
+                    videos v
+                WHERE
+                    vs.videoId = v.id
+                AND vs.orderId = #{orderId}
+                AND vs.userId = #{userId}
+                AND v.courseWareId = #{courseWareId}
+                AND vs.`status` = 2) = (SELECT COUNT(0) FROM videos v WHERE v.courseWareId = #{courseWareId})
+                ,1,0
+            )
+    </select>
+
+    <select id="queryCourseWareByVideo" resultMap="BaseCourseWare">
+        SELECT
+            cw.*
+        FROM
+            course_ware cw
+        WHERE
+            cw.id = (
+                SELECT
+                    v.courseWareId
+                FROM
+                    videos v
+                WHERE
+                    v.id = #{videoId}
+            )
+    </select>
+
+    <insert id="addCourseWare" useGeneratedKeys="true" keyColumn="id" parameterType="com.magic.aimai.business.entity.CourseWare">
+        INSERT INTO course_ware (courseWareName, isValid, createTime, createUserId, ppt, curriculumId,teacherName,teacherIntroduce,cover,applyPerson)
+        VALUES (#{courseWareName}, 1, now(), #{createUserId}, #{ppt}, #{curriculumId},#{teacherName},#{teacherIntroduce},#{cover},#{applyPerson})
+    </insert>
+
+
+    <select id="queryCourseWareByCurriculum" resultMap="IncludeVideo">
+        SELECT cw.*,#{userId} AS userId,#{orderId} AS orderId FROM course_ware cw
+        WHERE  cw.curriculumId = #{curriculumId} AND cw.isValid = 1
+    </select>
+
+
+    <select id="listForAdmin" resultMap="BaseCourseWare" parameterType="map">
+        SELECT
+        cw.* ,t.tradeName ,c.curriculumName
+        FROM course_ware cw ,curriculum c LEFT JOIN trade t ON c.tradeId = t.id
+        WHERE cw.curriculumId = c.id
+        AND cw.curriculumId = #{curriculumId}
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName Like '%${courseWareName}%'
+        </if>
+        <if test="teacherName != null and teacherName != ''">
+            AND cw.teacherName Like '%${teacherName}%'
+        </if>
+        <if test="isValid != null">
+            AND cw.isValid = #{isValid}
+        </if>
+        <if test="createTimeStart != null">
+            AND cw.createTime <![CDATA[ >= ]]> #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            AND cw.createTime <![CDATA[ <= ]]> #{createTimeEnd}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        cw.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM course_ware cw,curriculum c LEFT JOIN trade t ON c.tradeId = t.id
+        WHERE cw.curriculumId = c.id
+        AND cw.curriculumId = #{curriculumId}
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName Like '%${courseWareName}%'
+        </if>
+        <if test="teacherName != null and teacherName != ''">
+            AND cw.teacherName Like '%${teacherName}%'
+        </if>
+        <if test="isValid != null">
+            AND cw.isValid = #{isValid}
+        </if>
+        <if test="createTimeStart != null">
+            AND cw.createTime <![CDATA[ >= ]]> #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            AND cw.createTime <![CDATA[ <= ]]> #{createTimeEnd}
+        </if>
+    </select>
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.CourseWare" >
+        update course_ware
+        <set>
+            <if test="courseWareName != null and courseWareName != ''">
+                courseWareName = #{courseWareName},
+            </if>
+            <if test="isValid != null">
+                isValid = #{isValid},
+            </if>
+            <if test="ppt != null and ppt != ''">
+                ppt = #{ppt},
+            </if>
+            <if test="teacherName != null and teacherName != ''">
+                teacherName = #{teacherName},
+            </if>
+            <if test="applyPerson != null and applyPerson != ''">
+                applyPerson = #{applyPerson},
+            </if>
+            <if test="teacherIntroduce != null and teacherIntroduce != ''">
+                teacherIntroduce = #{teacherIntroduce},
+            </if>
+            <if test="cover != null and cover != ''">
+                cover = #{cover},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <update id="updateAll" parameterType="com.magic.aimai.business.entity.CourseWare" >
+        update course_ware
+        <set>
+            courseWareName = #{courseWareName},
+            isValid = 1,
+            ppt = #{ppt},
+            teacherName = #{teacherName},
+            teacherIntroduce = #{teacherIntroduce},
+            applyPerson = #{applyPerson},
+            cover = #{cover}
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <select id="info" resultMap="BaseCourseWare">
+        SELECT
+        cw.*
+        FROM course_ware cw
+        WHERE cw.id = #{id}
+
+    </select>
+
+
+
+
+    <select id="listForWebUser" resultMap="BaseCourseWare" parameterType="map">
+        SELECT cw.*,#{orderId} AS orderId,
+        (SELECT vs.createTime FROM video_status vs WHERE vs.orderId = o.id
+            ORDER BY vs.id ASC LIMIT 0,1 ) AS studyStartTime,
+        (SELECT SUM(v.lowDefinitionSeconds) FROM videos v WHERE cw.id = v.courseWareId ) AS hdSeconds,
+        (SELECT SUM(vs.seconds) FROM videos v ,video_status vs
+        WHERE cw.id = v.courseWareId AND vs.`status` = 2 AND  v.id = vs.videoId
+        AND vs.orderId = o.id and vs.userId = #{userId}
+            ORDER BY vs.id DESC LIMIT 0,1 ) AS expendSeconds
+        FROM course_ware cw,`order` o
+        WHERE cw.curriculumId = #{curriculumId}
+        AND o.id = #{orderId}
+        ORDER BY
+        cw.id DESC
+        <if test="limit != null and limitSize != null">
+            limit #{limit}, #{limitSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminUser" resultMap="BaseCourseWare" parameterType="map">
+        SELECT cw.*,#{orderId} AS orderId,
+        (SELECT vs.createTime FROM video_status vs WHERE vs.orderId = o.id
+            ORDER BY vs.id ASC LIMIT 0,1 ) AS studyStartTime,
+        (SELECT SUM(v.lowDefinitionSeconds) FROM videos v WHERE cw.id = v.courseWareId ) AS hdSeconds,
+        (SELECT SUM(vs.seconds) FROM videos v ,video_status vs
+        WHERE cw.id = v.courseWareId AND vs.`status` IN (1,2) AND  v.id = vs.videoId
+        AND vs.orderId = o.id and vs.userId = #{userId}
+            ORDER BY vs.id DESC LIMIT 0,1 ) AS expendSeconds
+        FROM course_ware cw,`order` o
+        WHERE cw.curriculumId = #{curriculumId}
+        AND o.id = #{orderId}
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        cw.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminUserCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM course_ware cw,`order` o
+        WHERE cw.curriculumId = #{curriculumId}
+        AND o.id = #{orderId}
+
+    </select>
+
+    <delete id="delete">
+        DELETE FROM course_ware WHERE id = #{id}
+    </delete>
+
+
+    <delete id="deleteByCurriculumId">
+        DELETE FROM course_ware WHERE curriculumId = #{curriculumId}
+    </delete>
+</mapper>

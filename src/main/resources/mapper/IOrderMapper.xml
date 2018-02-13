@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IOrderMapper">
+
+    <resultMap id="BaseOrder" type="com.magic.aimai.business.entity.Order">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="orderNumber" property="orderNumber" javaType="java.lang.String"/>
+        <result column="userId" property="userId" javaType="java.lang.Integer"/>
+        <result column="curriculumId" property="curriculumId" javaType="java.lang.Integer"/>
+        <result column="number" property="number" javaType="java.lang.Integer"/>
+        <result column="payStatus" property="payStatus" javaType="java.lang.Integer"/>
+        <result column="payMethod" property="payMethod" javaType="java.lang.Integer"/>
+        <result column="roleId" property="roleId" javaType="java.lang.Integer"/>
+        <result column="cityId" property="cityId" javaType="java.lang.Integer"/>
+        <result column="price" property="price" javaType="java.lang.Double"/>
+        <result column="createUserId" property="createUserId" javaType="java.lang.Integer"/>
+        <result column="userIsValid" property="userIsValid" javaType="java.lang.Integer"/>
+        <result column="isPlatformCreate" property="isPlatformCreate" javaType="java.lang.Integer"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="cover" property="cover" javaType="java.lang.String"/>
+        <result column="outTradeNO" property="outTradeNO" javaType="java.lang.String"/>
+        <result column="cityName" property="cityName" javaType="java.lang.String"/>
+        <result column="year" property="year" javaType="java.util.Date"/>
+        <result column="stageName" property="stageName" javaType="java.lang.String"/>
+        <result column="surplusNumber" property="surplusNumber" javaType="java.lang.Integer"/>
+        <result column="studyStatus" property="studyStatus" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <resultMap id="BaseOrderUser" type="com.magic.aimai.business.entity.Order" extends="BaseOrder">
+        <association property="user" resultMap="com.magic.aimai.business.mapper.IUserMapper.BaseUser"/>
+    </resultMap>
+
+    <select id="queryOrderByCompany" resultMap="BaseOrder">
+        SELECT
+            (SELECT (o.number - COUNT(0)) FROM curriculum_allocation cca WHERE cca.orderId = o.id) AS surplusNumber,
+            o.*
+        FROM
+            `order` o
+        WHERE
+            o.payStatus = 1
+        AND o.userId = #{userId}
+        AND o.curriculumId = #{curriculumId}
+        ORDER BY o.id ASC
+    </select>
+
+    <select id="queryOrderByUser" resultMap="BaseOrder">
+        SELECT * FROM `order` WHERE userId = #{userId} AND curriculumId = #{curriculumId} AND userIsValid = 1
+    </select>
+
+    <select id="queryOrder" resultMap="BaseOrder">
+        SELECT
+          o.id,
+          (o.price / o.number) AS price,
+          cc.curriculumName,
+          cc.cover,
+          o.number,
+          o.payStatus,
+          o.studyStatus,
+          o.payMethod,
+          o.curriculumId,
+          o.cityId,
+          cc.`year`,
+          cs.stageName
+        FROM  `order` o,curriculum cc ,curriculum_stage cs
+        WHERE o.curriculumId = cc.id
+        AND cs.id = cc.curriculumStageId
+        AND o.userIsValid = 1
+        <if test="userId != null">
+            AND o.userId = #{userId}
+        </if>
+        <if test="payStatus != null">
+            AND o.payStatus = #{payStatus}
+        </if>
+        ORDER BY o.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryBaseOrder" resultMap="BaseOrder">
+        SELECT * FROM `order` WHERE  id = #{id}
+    </select>
+
+    <update id="updateOrder">
+        UPDATE `order`
+        <set>
+            <if test="order.studyStatus != null">
+                studyStatus = #{order.studyStatus},
+            </if>
+            <if test="order.outTradeNO != null">
+                outTradeNO = #{order.outTradeNO},
+            </if>
+            <if test="order.userIsValid != null">
+                userIsValid = #{order.userIsValid},
+            </if>
+            <if test="order.payMethod != null">
+                payMethod = #{order.payMethod},
+            </if>
+            <if test="order.payStatus != null">
+                payStatus = #{order.payStatus},
+            </if>
+        </set>
+        WHERE id = #{order.id}
+    </update>
+
+    <insert id="addOrder" useGeneratedKeys="true" keyColumn="id" keyProperty="id"  parameterType="com.magic.aimai.business.entity.Order">
+        INSERT INTO `order` (orderNumber, userId, curriculumId, `number`, payStatus, payMethod,
+        `price`, createTime, createUserId, userIsValid,cityId,isPlatformCreate,studyStatus)
+        VALUES (#{orderNumber}, #{userId}, #{curriculumId}, #{number}, #{payStatus}, #{payMethod},
+        #{price}, now(), #{createUserId}, 1,#{cityId},#{isPlatformCreate},1)
+    </insert>
+
+    <select id="listForAdmin" resultMap="BaseOrderUser" parameterType="map">
+        SELECT o.*,u.showName,ci.`mergerName` AS cityName,cu.curriculumName ,u.roleId
+        FROM `order` o ,users u , curriculum cu ,citys ci
+        WHERE o.userId = u.id
+        AND o.curriculumId = cu.id
+        AND o.cityId = ci.id
+        <choose>
+            <when test="districtId != null">
+                AND cu.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND cu.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND cu.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        <if test="userName != null and userName != ''">
+            AND u.showName Like '%${userName}%'
+        </if>
+        <if test="orderNumber != null and orderNumber != ''">
+            AND o.orderNumber Like '%${orderNumber}%'
+        </if>
+        <if test="payStatus != null">
+            AND o.payStatus = #{payStatus}
+        </if>
+        <if test="payMethod != null">
+            AND o.payMethod = #{payMethod}
+        </if>
+        <if test="isPlatformCreate != null">
+            AND o.isPlatformCreate = #{isPlatformCreate}
+        </if>
+        <if test="startTime != null">
+            AND o.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND o.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        o.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM `order` o ,users u , curriculum cu ,citys ci
+        WHERE o.userId = u.id
+        AND o.curriculumId = cu.id
+        AND o.cityId = ci.id
+        <choose>
+            <when test="districtId != null">
+                AND cu.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND cu.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND cu.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        <if test="userName != null and userName != ''">
+            AND u.showName Like '%${userName}%'
+        </if>
+        <if test="orderNumber != null and orderNumber != ''">
+            AND o.orderNumber Like '%${orderNumber}%'
+        </if>
+        <if test="payStatus != null">
+            AND o.payStatus = #{payStatus}
+        </if>
+        <if test="payMethod != null">
+            AND o.payMethod = #{payMethod}
+        </if>
+        <if test="isPlatformCreate != null">
+            AND o.isPlatformCreate = #{isPlatformCreate}
+        </if>
+        <if test="startTime != null">
+            AND o.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND o.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+
+
+    <select id="info" resultMap="BaseOrderUser">
+        SELECT o.*,u.showName,ci.mergerName AS cityName,cu.curriculumName
+        FROM `order` o ,users u , curriculum cu ,citys ci
+        WHERE o.userId = u.id
+        AND o.curriculumId = cu.id
+        AND o.cityId = ci.id
+        AND o.id = #{id}
+    </select>
+
+
+    <update id="updateIsCanStudy" >
+         update `order` set
+        studyStatus  = #{studyStatus}
+        where id = #{id}
+    </update>
+
+
+</mapper>

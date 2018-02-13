@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IUserCityMapper">
+
+
+    <select id="queryCityByUser" resultType="com.magic.aimai.business.entity.City">
+        SELECT
+            c.id,
+            c.levelType,
+            c.`name`,
+            c.parentId,
+            c.shortName,
+            c.mergerName
+        FROM
+            user_city u,
+            citys c
+        WHERE
+            u.cityId = c.id
+            AND u.userId = #{userId}
+    </select>
+
+    <insert id="batchAdd">
+        INSERT INTO user_city (userId, cityId)
+        VALUES
+        <foreach collection="list" index="index" item="u" separator=",">
+            (#{u.userId}, #{u.cityId})
+        </foreach>
+    </insert>
+
+    <delete id="del">
+        DELETE FROM user_city WHERE  userId = #{userId}
+    </delete>
+
+</mapper>

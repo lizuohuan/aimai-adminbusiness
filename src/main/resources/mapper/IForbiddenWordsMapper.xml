@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IForbiddenWordsMapper" >
+
+
+    <select id="queryAllWord" resultType="com.magic.aimai.business.entity.ForbiddenWords">
+        SELECT * FROM forbidden_words
+    </select>
+
+    <insert id="addForbiddenWords" parameterType="com.magic.aimai.business.entity.ForbiddenWords">
+        INSERT INTO forbidden_words ( `word`, `describe`)
+        VALUES ( #{word}, #{describe})
+    </insert>
+
+    <update id="updateForbiddenWords">
+        UPDATE forbidden_words
+        <set>
+            <if test="forbiddenWords.describe != null">
+                `describe` = #{forbiddenWords.describe},
+            </if>
+            <if test="forbiddenWords.word != null">
+                `word` = #{forbiddenWords.word},
+            </if>
+        </set>
+        WHERE id = #{forbiddenWords.id}
+    </update>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.ForbiddenWords" parameterType="map">
+        SELECT
+        *
+        FROM forbidden_words f
+        WHERE 1 = 1
+
+        <if test="word != null and word != ''">
+            AND f.word Like '%${word}%'
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        f.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM forbidden_words f
+        WHERE 1 = 1
+        <if test="word != null and word != ''">
+            AND f.word Like '%${word}%'
+        </if>
+    </select>
+
+
+
+    <select id="info" resultType="com.magic.aimai.business.entity.ForbiddenWords">
+        SELECT
+        *
+        FROM forbidden_words f
+        WHERE
+        f.id = #{id}
+    </select>
+</mapper>

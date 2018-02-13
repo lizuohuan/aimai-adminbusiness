@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IPaperMapper">
+
+
+    <resultMap id="BasePaper" type="com.magic.aimai.business.entity.Paper">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="paperTitle" property="paperTitle" javaType="java.lang.String"/>
+        <result column="targetName" property="targetName" javaType="java.lang.String"/>
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="type" property="type" javaType="java.lang.Integer"/>
+        <result column="targetId" property="targetId" javaType="java.lang.Integer"/>
+        <result column="useTime" property="useTime" javaType="java.lang.Integer"/>
+        <result column="examinationNum" property="examinationNum" javaType="java.lang.Integer"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+    </resultMap>
+
+    <!--  包含试卷下的所有题目 以及 选项等 -->
+    <resultMap id="IncludeExamination" type="com.magic.aimai.business.entity.Paper" extends="BasePaper">
+        <association property="examinationList" column="id" select="com.magic.aimai.business.mapper.IExaminationMapper.queryExaminationByPaper"/>
+    </resultMap>
+
+    <!--  包含试卷下的所有题目 以及 选项等 外链使用 -->
+    <resultMap id="IncludeExamination2" type="com.magic.aimai.business.entity.Paper" extends="BasePaper">
+        <collection property="examinationList" resultMap="com.magic.aimai.business.mapper.IExaminationMapper.BaseExamination"/>
+    </resultMap>
+
+    <select id="queryPaperById" resultMap="IncludeExamination">
+        SELECT * FROM  papers WHERE id = #{paperId}
+    </select>
+
+
+    <select id="queryBasePaperById" resultMap="BasePaper">
+        SELECT p.*,
+        CASE p.`type`
+        WHEN 0 THEN (SELECT CONCAT(cw.courseWareName,'(',cc.curriculumName,')') FROM course_ware cw,curriculum cc WHERE cc.id = cw.curriculumId and  cw.id = p.targetId)
+        ELSE (SELECT cc.curriculumName FROM curriculum cc WHERE  cc.id = p.targetId) END AS targetName
+        FROM  papers p WHERE p.id = #{paperId}
+    </select>
+
+    <insert id="bindPaper">
+        INSERT INTO examination_paper (examinationId, paperId, score) 
+        VALUES
+         <foreach collection="examinationPapers" index="index" item="examinationPaper" separator=",">
+             (#{examinationPaper.examinationId}, #{examinationPaper.paperId}, #{examinationPaper.score})
+         </foreach>
+    </insert>
+
+    <select id="countPaperForAdmin" resultType="java.lang.Integer" parameterType="map">
+      SELECT
+        COUNT(0)
+      FROM papers p
+      WHERE 1=1
+        <if test="targetId != null and type != null">
+          AND p.`type` = #{type} AND p.targetId = #{targetId}
+        </if>
+        <if test="paperTitle != null">
+            AND p.paperTitle LIKE '%${paperTitle}%'
+        </if>
+    </select>
+
+
+    <select id="queryPaperForAdmin" resultMap="BasePaper" parameterType="map">
+      SELECT
+        p.*,
+        CASE p.`type`
+        WHEN 0 THEN (SELECT cw.courseWareName FROM course_ware cw WHERE  cw.id = p.targetId)
+        ELSE (SELECT cc.curriculumName FROM curriculum cc WHERE  cc.id = p.targetId) END AS targetName,
+        CASE p.`type`
+        WHEN 0 THEN (SELECT cc.curriculumName FROM course_ware cw,curriculum cc WHERE
+        cw.id = p.targetId AND cc.id = cw.curriculumId) END AS curriculumName
+      FROM papers p
+      WHERE 1=1
+        <if test="targetId != null">
+            AND p.targetId = #{targetId}
+        </if>
+        <if test="type != null">
+            AND p.`type` = #{type}
+        </if>
+        <if test="paperTitle != null and paperTitle != ''">
+            AND p.paperTitle LIKE '%${paperTitle}%'
+        </if>
+        ORDER BY p.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryPaperByItems" resultMap="IncludeExamination">
+        SELECT *
+        FROM papers
+        WHERE
+        targetId = #{targetId}
+        AND `type` = #{type}
+    </select>
+
+    <select id="queryBasePaperByItem" resultMap="BasePaper">
+        SELECT * FROM  papers WHERE 1=1
+        <if test="type != null">
+            AND `type`=#{type}
+        </if>
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryPaperByItem" resultMap="IncludeExamination">
+        SELECT
+          * 
+        FROM
+          papers
+        WHERE 1=1
+        <if test="type != null">
+            AND `type` = #{type}
+        </if>
+    </select>
+
+
+    <insert id="addPaper" useGeneratedKeys="true" keyColumn="id" parameterType="com.magic.aimai.business.entity.Paper">
+        INSERT INTO papers ( paperTitle, createTime,  `type`,targetId,useTime,passScore)
+        VALUES ( #{paperTitle}, now(), #{type},#{targetId},#{useTime},#{passScore})
+    </insert>
+
+    <update id="updatePaper">
+        UPDATE papers
+        <set>
+            <if test="paper.isValid != null">
+                `isValid` = #{paper.isValid},
+            </if>
+            <if test="paper.passScore != null">
+                `passScore` = #{paper.passScore},
+            </if>
+            <if test="paper.useTime != null">
+                `useTime` = #{paper.useTime},
+            </if>
+            <if test="paper.targetId != null">
+                `targetId` = #{paper.targetId},
+            </if>
+            <if test="paper.type != null">
+                `type` = #{paper.type},
+            </if>
+            <if test="paper.paperTitle != null">
+                paperTitle = #{paper.paperTitle},
+            </if>
+        </set>
+        WHERE id = #{paper.id}
+    </update>
+
+    
+    <select id="isHavePaperByCurriculumId" resultType="int" >
+        select COUNT(0) from papers p  WHERE  p.targetId = #{curriculumId} and p.type = #{type}
+    </select>
+
+</mapper>

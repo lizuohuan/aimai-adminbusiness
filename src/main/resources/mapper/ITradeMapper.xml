@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ITradeMapper">
+
+
+    <resultMap id="BaseTrade" type="com.magic.aimai.business.entity.Trade">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="tradeName" property="tradeName" javaType="java.lang.String"/>
+    </resultMap>
+
+
+    <resultMap id="TradeIncludeCurriculum" type="com.magic.aimai.business.entity.Trade" extends="BaseTrade">
+        <association property="curriculumList" column="provinceId=provinceId,townId=townId,countyId=countyId,
+                                                        tradeId=tradeId,limit=limit,limitSize=limitSize"
+                     select="com.magic.aimai.business.mapper.ICurriculumMapper.queryCurriculumByItems"/>
+    </resultMap>
+
+    <select id="queryTradeById" resultMap="BaseTrade">
+        SELECT * FROM trade WHERE  id = #{tradeId}
+    </select>
+    <select id="queryTrade" resultMap="BaseTrade">
+        SELECT * FROM trade
+        <if test="limit != null and limitSize!= null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryTradeIncludeCurriculum" resultMap="TradeIncludeCurriculum">
+        SELECT
+        id,
+        tradeName,
+        #{provinceId} AS provinceId,
+        #{townId} AS townId,
+        #{countyId} AS countyId,
+        id AS tradeId,
+        #{limit} AS limit,
+        #{limitSize} AS limitSize
+        FROM trade
+        WHERE 1=1
+        <if test="tradeId != null">
+            id  = #{tradeId}
+        </if>
+    </select>
+
+
+    <select id="listForAdmin" resultMap="BaseTrade" parameterType="map">
+        SELECT
+        t.id,
+        t.tradeName
+        FROM trade t
+        WHERE 1=1
+        <if test="tradeName != null and tradeName != ''">
+           AND t.tradeName Like '%${tradeName}%'
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        t.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+          COUNT(*)
+        FROM trade t
+        WHERE 1=1
+        <if test="tradeName != null and tradeName != ''">
+           AND t.tradeName Like '%${tradeName}%'
+        </if>
+    </select>
+
+
+    <insert id="save" parameterType="com.magic.aimai.business.entity.Trade">
+        insert into trade (tradeName) values (#{tradeName});
+    </insert>
+
+    <insert id="update" parameterType="com.magic.aimai.business.entity.Trade">
+        update trade set tradeName = #{tradeName} where id = #{id};
+    </insert>
+</mapper>

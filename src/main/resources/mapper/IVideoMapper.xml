@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IVideoMapper">
+
+
+    <resultMap id="BaseVideo" type="com.magic.aimai.business.entity.Video">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="highDefinition" property="highDefinition" javaType="java.lang.String"/>
+        <result column="highDefinitionSeconds" property="highDefinitionSeconds" javaType="java.lang.Integer"/>
+        <result column="lowDefinition" property="lowDefinition" javaType="java.lang.String"/>
+        <result column="lowDefinitionSeconds" property="lowDefinitionSeconds" javaType="java.lang.Integer"/>
+        <result column="courseWareId" property="courseWareId" javaType="java.lang.Integer"/>
+        <result column="sourceHigh" property="sourceHigh" javaType="java.lang.Integer"/>
+        <result column="videoWareHouseHighId" property="videoWareHouseHighId" javaType="java.lang.Integer"/>
+        <result column="sourceLow" property="sourceLow" javaType="java.lang.Integer"/>
+        <result column="videoWareHouseLowId" property="videoWareHouseLowId" javaType="java.lang.Integer"/>
+        <result column="name" property="name" javaType="java.lang.String"/>
+        <result column="cover" property="cover" javaType="java.lang.String"/>
+        <association property="videoStatus" column="videoId=id,userId=userId,orderId=orderId" select="com.magic.aimai.business.mapper.IVideoStatusMapper.queryNewStatusByUserId"/>
+    </resultMap>
+
+
+    <select id="querySimpleVideoByCourseWare" resultType="com.magic.aimai.business.entity.Video">
+        SELECT * FROM videos WHERE courseWareId = #{courseWareId}
+    </select>
+
+    <insert id="addVideo" parameterType="com.magic.aimai.business.entity.Video">
+        INSERT INTO videos (highDefinition, highDefinitionSeconds, lowDefinition, lowDefinitionSeconds,
+        courseWareId ,`name`,cover,sourceLow,sourceHigh,videoWareHouseHighId,videoWareHouseLowId)
+        VALUES(#{highDefinition}, #{highDefinitionSeconds}, #{lowDefinition}, #{lowDefinitionSeconds}, #{courseWareId} ,
+        #{name},#{cover},#{sourceLow},#{sourceHigh},#{videoWareHouseHighId},#{videoWareHouseLowId})
+    </insert>
+
+
+    <select id="queryVideoByCourseWare" resultMap="BaseVideo" parameterType="map">
+        SELECT v.*,#{userId} AS userId,#{orderId} AS orderId FROM videos v WHERE v.courseWareId = #{courseWareId}
+    </select>
+
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.Video">
+        update videos
+        <set>
+            <if test="highDefinition != null and highDefinition != ''">
+                highDefinition = #{highDefinition},
+            </if>
+            <if test="highDefinitionSeconds != null">
+                highDefinitionSeconds = #{highDefinitionSeconds},
+            </if>
+            <if test="lowDefinition != null and lowDefinition != ''">
+                lowDefinition = #{lowDefinition},
+            </if>
+            <if test="lowDefinitionSeconds != null">
+                lowDefinitionSeconds = #{lowDefinitionSeconds},
+            </if>
+            <if test="courseWareId != null">
+                courseWareId = #{courseWareId},
+            </if>
+            <if test="cover != null and cover != ''">
+                cover = #{cover},
+            </if>
+            <if test="sourceHigh != null">
+                sourceHigh = #{sourceHigh},
+            </if>
+            <if test="sourceLow != null">
+                sourceLow = #{sourceLow},
+            </if>
+            <if test="videoWareHouseLowId != null">
+                videoWareHouseLowId = #{videoWareHouseLowId},
+            </if>
+            <if test="videoWareHouseHighId != null">
+                videoWareHouseHighId = #{videoWareHouseHighId},
+            </if>
+            <if test="name != null and name != ''">
+                `name` = #{name},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.Video" parameterType="map">
+        SELECT
+        v.*
+        FROM videos v
+        WHERE v.courseWareId = #{courseWareId}
+        <if test="name != null and name != ''">
+            AND v.name Like '%${name}%'
+        </if>
+        <if test="sourceHigh != null">
+            AND v.sourceHigh = #{sourceHigh}
+        </if>
+        <if test="sourceLow != null">
+            AND v.sourceLow = #{sourceLow}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        v.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM videos v
+        WHERE v.courseWareId = #{courseWareId}
+        <if test="name != null and name != ''">
+            AND v.name Like '%${name}%'
+        </if>
+        <if test="sourceHigh != null">
+            AND v.sourceHigh = #{sourceHigh}
+        </if>
+        <if test="sourceLow != null">
+            AND v.sourceLow = #{sourceLow}
+        </if>
+    </select>
+
+    <select id="info" resultType="com.magic.aimai.business.entity.Video">
+        SELECT * FROM videos v
+        WHERE v.id = #{id}
+    </select>
+
+    <delete id="delete">
+      DELETE FROM videos WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByCourseWareId">
+      DELETE FROM videos WHERE courseWareId = #{courseWareId}
+    </delete>
+
+    <delete id="deleteByCurriculumId">
+      DELETE FROM videos WHERE courseWareId in (select cw.id from course_ware cw WHERE cw.curriculumId = #{curriculumId})
+    </delete>
+
+
+    <select id="countVideoByHouseId" resultType="integer">
+      select count(*) from videos v WHERE
+      1 = 1
+      <if test="id != null">
+          and  v.id != #{id}
+      </if>
+        and (v.videoWareHouseLowId = #{houseId} or v.videoWareHouseHighId = #{houseId})
+    </select>
+
+
+    <select id="getAllVideo" resultType="string">
+        select v0.highDefinition AS path from videos v0 UNION
+        select v1.lowDefinition AS path from videos v1 UNION
+        select vw.url AS path from video_ware_house vw
+    </select>
+
+
+</mapper>

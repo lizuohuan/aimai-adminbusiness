@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IMenuMapper" >
+
+  <resultMap id="BaseResultMap" type="com.magic.aimai.business.entity.Menu" >
+    <id column="id" property="id" javaType="java.lang.Integer" />
+    <result column="title" property="title" javaType="java.lang.String" />
+    <result column="href" property="href" javaType="java.lang.String" />
+    <result column="icon" property="icon" javaType="java.lang.String" />
+    <result column="parent_id" property="parentId" javaType="java.lang.Integer" />
+    <result column="level" property="level" javaType="java.lang.Integer" />
+  </resultMap>
+
+  <!-- 查询所有菜单(权限) -->
+  <select id="findAllMenu" resultMap="BaseResultMap">
+      select * from menu m
+  </select>
+
+  <!-- 获取当前登录角色的权限 -->
+  <select id="getRoleMenu" resultMap="BaseResultMap">
+      select m.* from menu m ,role_menu r ,users u WHERE
+      r.menuId = m.id AND
+      u.roleId = r.roleId AND
+      u.id = #{userId}
+      group by m.id
+  </select>
+
+</mapper>

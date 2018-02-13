@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ILoginLogMapper">
+
+
+
+    <insert id="add" parameterType="com.magic.aimai.business.entity.LoginLog">
+        INSERT INTO log_login (userId, ip, cityId, createTime, source)
+        VALUES (#{userId}, #{ip}, #{cityId}, NOW(), #{source})
+    </insert>
+
+
+    <select id="queryLoginLog" resultType="com.magic.aimai.business.entity.LoginLog">
+        SELECT
+            ll.*, u.showName AS userName,
+            cc.`name` AS cityName
+        FROM
+            log_login ll
+        LEFT JOIN users u ON ll.userId = u.id
+        LEFT JOIN citys cc ON cc.id = ll.cityId
+        WHERE
+            1 = 1
+            <if test="userId != null">
+                AND ll.userId = #{userId}
+            </if>
+            <if test="userName != null and userName != ''">
+                AND u.showName like '%${userName}%'
+            </if>
+        <if test="startTime != null">
+            AND ll.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND ll.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+            <!--<if test="loginTime != null">-->
+                <!--AND DATE_FORMAT(ll.createTime,'%y-%m-%d') = DATE_FORMAT(#{loginTime},'%y-%m-%d')-->
+            <!--</if>-->
+            <if test="source != null">
+                AND ll.source = #{source}
+            </if>
+        ORDER BY ll.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="queryLog" resultType="com.magic.aimai.business.entity.LoginLog">
+        SELECT
+            ll.*
+        FROM
+            log_login ll
+        WHERE
+            ll.userId = #{userId}
+            ORDER BY ll.id DESC
+            LIMIT 0,#{size}
+    </select>
+
+
+
+    <select id="queryNewLog" resultType="com.magic.aimai.business.entity.LoginLog">
+        SELECT
+            ll.*, u.showName AS userName,
+            cc.`name` AS cityName
+        FROM
+            log_login ll
+        LEFT JOIN users u ON ll.userId = u.id
+        LEFT JOIN citys cc ON cc.id = ll.cityId
+        WHERE
+            ll.userId = #{userId}
+            ORDER BY ll.id DESC
+            LIMIT 0,1
+    </select>
+
+
+
+    <select id="countLoginLog" resultType="int">
+        SELECT
+            COUNT(0)
+        FROM
+            log_login ll
+            LEFT JOIN users u ON ll.userId = u.id
+        WHERE
+            1 = 1
+            <if test="userId != null">
+                AND ll.userId = #{userId}
+            </if>
+            <if test="userName != null and userName != ''">
+                AND u.showName like '%${userName}%'
+            </if>
+
+        <if test="startTime != null">
+            AND ll.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND ll.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <!--<if test="loginTime != null">-->
+                <!--AND DATE_FORMAT(ll.createTime,'%y-%m-%d') = DATE_FORMAT(#{loginTime},'%y-%m-%d')-->
+            <!--</if>-->
+            <if test="source != null">
+                AND ll.source = #{source}
+            </if>
+    </select>
+
+
+</mapper>

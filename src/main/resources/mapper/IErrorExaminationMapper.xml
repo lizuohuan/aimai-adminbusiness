@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IErrorExaminationMapper">
+
+
+    <insert id="batchAddErrorExamination">
+        INSERT INTO error_examination (examinationId, userId, orderId) 
+        VALUES 
+        <foreach collection="errors" index="index" item="errorExamination" separator=",">
+            (#{errorExamination.examinationId}, #{errorExamination.userId},#{errorExamination.orderId} )
+        </foreach>
+    </insert>
+
+    
+    <select id="queryErrorExamination" resultType="com.magic.aimai.business.entity.ErrorExamination">
+        SELECT * FROM error_examination WHERE userId = #{userId} AND orderId = #{orderId}
+    </select>
+
+    <delete id="delErrorExamination">
+        DELETE FROM error_examination WHERE userId = #{userId} AND orderId = #{orderId}
+    </delete>
+
+</mapper>

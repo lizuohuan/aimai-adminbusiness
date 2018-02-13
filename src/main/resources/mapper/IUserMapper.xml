@@ -1,0 +1,1506 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IUserMapper">
+
+    <resultMap id="BaseUser" type="com.magic.aimai.business.entity.User">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="roleId" property="roleId" javaType="java.lang.Integer"/>
+        <result column="phone" property="phone" javaType="java.lang.String"/>
+        <result column="pwd" property="pwd" javaType="java.lang.String"/>
+        <result column="nickName" property="nickName" javaType="java.lang.String"/>
+        <result column="showName" property="showName" javaType="java.lang.String"/>
+        <result column="pid" property="pid" javaType="java.lang.String"/>
+        <result column="cityId" property="cityId" javaType="java.lang.Integer"/>
+        <result column="avatar" property="avatar" javaType="java.lang.String"/>
+        <result column="veriFaceImages" property="veriFaceImages" javaType="java.lang.String"/>
+        <result column="tradeId" property="tradeId" javaType="java.lang.Integer"/>
+        <result column="licenseFile" property="licenseFile" javaType="java.lang.String"/>
+        <result column="introduce" property="introduce" javaType="java.lang.String"/>
+        <result column="accumulate" property="accumulate" javaType="java.lang.Integer"/>
+        <result column="status" property="status" javaType="java.lang.Integer"/>
+        <result column="parentId" property="parentId" javaType="java.lang.Integer"/>
+        <result column="isValid" property="isValid" javaType="java.lang.Integer"/>
+        <result column="definition" property="definition" javaType="java.lang.Integer"/>
+        <result column="token" property="token" javaType="java.lang.String"/>
+        <result column="deviceType" property="deviceType" javaType="java.lang.Integer"/>
+        <result column="peopleNum" property="peopleNum" javaType="java.lang.Integer"/>
+        <result column="deviceToken" property="deviceToken" javaType="java.lang.String"/>
+        <result column="departmentName" property="departmentName" javaType="java.lang.String"/>
+        <result column="tradeName" property="tradeName" javaType="java.lang.String"/>
+        <result column="notes" property="notes" javaType="java.lang.String"/>
+        <result column="roleName" property="roleName" javaType="java.lang.String"/>
+        <result column="companyName" property="companyName" javaType="java.lang.String"/>
+        <result column="jobTitle" property="jobTitle" javaType="java.lang.String"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+        <result column="lastLoginTime" property="lastLoginTime" javaType="java.util.Date"/>
+        <result column="updateTime" property="updateTime" javaType="java.util.Date"/>
+        <result column="passTime" property="passTime" javaType="java.util.Date"/>
+
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="cityMergerName" property="cityMergerName" javaType="java.lang.String"/>
+        <result column="stageName" property="stageName" javaType="java.lang.String"/>
+        <result column="curriculumTypeName" property="curriculumTypeName" javaType="java.lang.String"/>
+        <result column="finishCourseWareNum" property="finishCourseWareNum" javaType="java.lang.Integer"/>
+        <result column="isPass" property="isPass" javaType="java.lang.Integer"/>
+        <result column="safeNum" property="safeNum" javaType="java.lang.Integer"/>
+        <result column="joinNum" property="joinNum" javaType="java.lang.Integer"/>
+        <result column="countNum" property="countNum" javaType="java.lang.Integer"/>
+        <result column="email" property="email" javaType="java.lang.String"/>
+    </resultMap>
+
+    <resultMap id="IncludeCity" type="com.magic.aimai.business.entity.User" extends="BaseUser">
+        <association property="city" column="cityId" select="com.magic.aimai.business.mapper.ICityMapper.queryCity"/>
+    </resultMap>
+
+    <resultMap id="IncludeCurriculum" type="com.magic.aimai.business.entity.User" extends="BaseUser">
+        <association property="curriculumList" column="id" select="com.magic.aimai.business.mapper.ICurriculumMapper.queryCurriculumByUser"/>
+    </resultMap>
+
+    <resultMap id="IncludeCity2" type="com.magic.aimai.business.entity.User" extends="BaseUser">
+        <association property="city" javaType="com.magic.aimai.business.entity.City"
+                     resultMap="com.magic.aimai.business.mapper.ICityMapper.BaseCity"/>
+    </resultMap>
+
+    <resultMap id="IncludeCurriculumWo" type="com.magic.aimai.business.entity.User" extends="BaseUser">
+        <association property="curriculumList"
+                     resultMap="com.magic.aimai.business.mapper.ICurriculumMapper.IncludeCourseWares"
+                     columnPrefix="curr_">
+        </association>
+    </resultMap>
+
+
+
+    <select id="queryCompanyByCity" resultMap="BaseUser">
+        SELECT * FROM  users WHERE roleId = 4 AND parentId IS NULL
+        AND cityId IN
+        <foreach collection="cIds" index="index" item="cId" open="(" close=")" separator=",">
+            #{cId}
+        </foreach>
+        GROUP BY id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit} ,#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="queryUserByEmail" resultMap="BaseUser">
+        SELECT * FROM  users WHERE `email` = #{email}
+        <if test="userId != null">
+            AND id NOT IN (#{userId})
+        </if>
+    </select>
+
+    <select id="queryUserByCurriculum" resultMap="BaseUser">
+        SELECT
+            u.id,u.avatar,u.nickName,u.showName,u.phone
+        FROM
+            users u
+        WHERE
+            u.parentId = #{companyId}
+            AND u.isValid = 1
+            AND u.id NOT IN
+            (SELECT cca.userId FROM `order` o,curriculum_allocation cca
+                               WHERE o.id = cca.orderId AND o.userId = #{companyId} AND o.curriculumId = #{curriculumId})
+    </select>
+
+
+    <select id="queryUserByCurriculum2" resultMap="BaseUser">
+        SELECT
+            u.id,u.avatar,u.nickName,u.showName,u.phone
+        FROM
+            users u
+        WHERE
+            u.parentId = #{companyId}
+            AND u.isValid = 1
+            AND u.id  IN
+            (SELECT cca.userId FROM `order` o,curriculum_allocation cca
+                               WHERE o.id = cca.orderId AND o.userId = #{companyId} AND o.curriculumId = #{curriculumId})
+    </select>
+
+
+    <select id="queryUserByOrderIdV2" resultMap="BaseUser">
+        SELECT
+        u.*
+        FROM
+        `order` o,
+        users u
+        WHERE
+        o.curriculumId IN (
+            SELECT
+            curriculumId
+            FROM
+            `order`
+            WHERE
+            id IN
+            <foreach collection="orderIds" index="index" item="orderId" open="(" close=")" separator=",">
+                #{orderId}
+            </foreach>
+        )
+        AND o.userIsValid = 1
+        AND o.userId = u.id
+        GROUP BY u.id
+    </select>
+
+
+    <select id="queryUserByOrderId" resultMap="BaseUser">
+        SELECT
+            u.*
+        FROM
+            `order` o,
+                users u
+        WHERE
+            o.curriculumId = (
+                SELECT
+                    curriculumId
+                FROM
+                    `order`
+                WHERE
+                    id = #{orderId}
+            )
+        AND o.userIsValid = 1
+        AND o.userId = u.id
+        GROUP BY u.id
+    </select>
+
+    <select id="queryUserByIsValid" resultMap="IncludeCity2">
+        SELECT u.*,c.* ,t.tradeName ,r.roleName
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN citys c ON c.id = u.cityId
+        ,role r
+        WHERE u.roleId = r.id
+        <if test="isValid != null">
+            AND u.isValid = #{isValid}
+        </if>
+        <if test="roleId != null">
+            AND u.roleId = #{roleId}
+        </if>
+        <if test="phoneNumber != null">
+            AND u.phone LIKE '%${phoneNumber}%'
+        </if>
+        ORDER BY u.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+    <select id="countUserByIsValid" resultType="int">
+        SELECT COUNT(0) FROM users WHERE 1=1
+        <if test="isValid != null">
+            AND isValid = #{isValid}
+        </if>
+        <if test="roleId != null">
+            AND roleId = #{roleId}
+        </if>
+        <if test="phoneNumber != null">
+            AND phone LIKE '%${phoneNumber}%'
+        </if>
+    </select>
+
+    <select id="queryAllUserId" resultMap="BaseUser">
+        SELECT id FROM users WHERE isValid = 1
+    </select>
+
+    <select id="queryExamine" resultMap="BaseUser">
+        SELECT
+          u.id,u.avatar,u.phone,u.showName,
+          (SELECT COUNT(0) FROM paper_record ppr WHERE
+            ppr.userId = u.id AND ppr.orderId = pr.orderId AND ppr.resultScore >= ppr.passScore) AS isPass
+        FROM users u,paper_record pr,papers p
+        WHERE u.id = pr.userId
+        AND u.isValid = 1
+        AND p.id = pr.paperId
+        AND p.type = 2
+        AND pr.orderId = #{orderId}
+        AND u.parentId = #{companyId}
+        GROUP BY u.id
+    </select>
+
+    <select id="queryWatchVideo" resultMap="BaseUser">
+        SELECT
+          u.id,u.avatar,u.phone,u.showName,
+          (SELECT COUNT(0) FROM finish_record fr WHERE fr.type = 0 AND fr.userId = u.id AND fr.orderId = vs.orderId) AS finishCourseWareNum
+        FROM users u,video_status vs
+        WHERE  u.id = vs.userId
+        AND u.isValid = 1
+        AND u.parentId = #{companyId}
+        AND vs.orderId = #{orderId}
+        GROUP BY u.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="batchQueryUserByPhone" resultMap="BaseUser">
+        SELECT id,phone,parentId,departmentName,jobTitle FROM users
+        WHERE isValid = 1 AND phone IN (
+          <foreach collection="phones" index="index" item="phone" separator=",">
+              #{phone}
+          </foreach>
+        )
+    </select>
+
+    <select id="findUserByPhone" resultMap="BaseUser">
+       select u.* from users u ,users company ,`order` o
+       WHERE  u.parentId = company.id
+       AND o.userId = company.id
+        AND o.id = #{orderId}
+        AND u.isValid = 1
+       AND u.id NOT IN
+        (
+           SELECT u1.id FROM `order` o1 ,curriculum c1 ,curriculum_allocation ca1 ,users u1
+            WHERE o1.id = ca1.orderId
+            AND o1.curriculumId = c1.id
+            AND ca1.userId = u1.id
+            AND o1.id = #{orderId}
+        )
+       AND u.phone IN (
+        <foreach collection="phones" index="index" item="phone" separator=",">
+            #{phone}
+        </foreach>
+       )
+    </select>
+
+    <select id="exportExcel" resultType="com.magic.aimai.business.entity.WebStatistics">
+        SELECT
+            u.showName,ci.mergerName AS cityName,tr.tradeName,#{year} AS `year`,
+            (SELECT COUNT(DISTINCT vs.userId) FROM video_status vs WHERE vs.userId IN
+        (SELECT uuu.id FROM users uuu WHERE uuu.parentId = u.id)) AS joinNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr,curriculum cc WHERE p.type = 2 AND p.id = pr.paperId AND cc.id = p.targetId
+                AND pr.resultScore >= pr.passScore AND pr.userId IN (SELECT id FROM users WHERE parentId = u.id)
+                <if test="year != null">
+                    AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                </if>
+                <if test="stageId != null">
+                    AND cc.curriculumStageId = #{stageId}
+                </if>
+                 ) AS safeNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr,curriculum cc WHERE  p.type = 2 AND p.id = pr.paperId AND cc.id = p.targetId
+                AND pr.resultScore >= pr.passScore AND pr.userId IN (SELECT id FROM users WHERE parentId = u.id) AND cc.curriculumStageId = 2
+                <if test="year != null">
+                    AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                </if>
+                <if test="stageId != null">
+                    AND cc.curriculumStageId = #{stageId}
+                </if>
+                ) AS allSafeNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM papers p,paper_record pr,curriculum cc WHERE  p.type = 2 AND p.id = pr.paperId AND cc.id = p.targetId
+                AND pr.resultScore >= pr.passScore AND pr.userId IN (SELECT id FROM users WHERE parentId = u.id) AND cc.curriculumStageId = 1
+                <if test="year != null">
+                    AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                </if>
+                <if test="stageId != null">
+                    AND cc.curriculumStageId = #{stageId}
+                </if>
+                ) AS threeSafeNum
+        FROM
+            users u LEFT JOIN citys ci ON u.cityId = ci.id
+            LEFT JOIN trade tr ON u.tradeId = tr.id
+        WHERE
+            u.roleId = 3
+        AND u.isValid = 1
+        <if test="cityIds != null">
+            AND u.cityId IN (
+                <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                    #{cityId}
+                </foreach>
+            )
+        </if>
+        <if test="searchParams != null">
+            AND u.showName LIKE '%${searchParams}%'
+        </if>
+    </select>
+
+
+    <select id="queryCompanyDetail" resultMap="IncludeCity">
+        SELECT
+            u.id,u.showName,u.avatar,u.pid,u.licenseFile,u.cityId,
+            (SELECT tradeName FROM trade t WHERE t.id = u.tradeId) AS tradeName,
+            (SELECT COUNT(DISTINCT vs.userId) FROM video_status vs WHERE vs.userId IN (SELECT uuu.id FROM users uuu WHERE uuu.parentId = u.id)) AS joinNum,
+            (SELECT COUNT(DISTINCT pr.userId) FROM paper_record pr ,papers p WHERE pr.paperId = p.id AND p.type = 2 AND pr.resultScore >= pr.passScore AND pr.userId IN
+                    (SELECT uuu.id FROM users uuu WHERE uuu.parentId = u.id)) AS safeNum
+
+        FROM
+            users u
+        WHERE
+            u.id = #{companyId}
+            AND u.isValid = 1
+    </select>
+
+
+    <select id="queryWatchUsers" resultMap="BaseUser">
+        SELECT
+            u.id,
+            u.avatar,
+            u.showName
+        FROM
+            users u
+        WHERE
+            u.parentId = #{companyId}
+        AND u.isValid = 1
+        AND u.id IN (
+            SELECT
+                vs.userId
+            FROM
+                video_status vs
+            WHERE
+                vs.orderId = #{orderId}
+            GROUP BY
+                vs.userId
+        )
+    </select>
+
+    <select id="querySafeUsers" resultMap="BaseUser">
+        SELECT
+            u.id,u.avatar,u.showName
+        FROM
+            users u
+        WHERE
+            u.parentId = #{companyId}
+        AND u.isValid = 1
+        AND u.id IN (
+            SELECT
+                pr.userId
+            FROM
+                paper_record pr,
+                papers p,
+                `order` o
+            WHERE
+                pr.paperId = p.id
+            AND p.type = 2
+            AND p.targetId = o.curriculumId
+            AND o.id = #{orderId}
+            AND pr.orderId = o.id
+            AND pr.resultScore >= pr.passScore
+            GROUP BY pr.userId
+        )
+    </select>
+
+    <select id="webStatistics" resultType="com.magic.aimai.business.entity.WebStatistics">
+        SELECT
+            (SELECT COUNT(0) FROM users u WHERE u.roleId = 3 AND u.isValid = 1
+
+              <if test="cityIds != null">
+                  AND u.cityId IN (
+                    <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                        #{cityId}
+                    </foreach>
+                  )
+              </if>
+              <if test="searchParams != null">
+                  AND u.showName LIKE '%${searchParams}%'
+              </if>
+
+            ) AS companyNum,
+
+
+
+            (SELECT COUNT(DISTINCT u.id) FROM curriculum cc,papers p,paper_record pr,users u
+                    WHERE p.type = 2 AND p.targetId = cc.id AND p.id = pr.paperId AND u.id = pr.userId  AND u.isValid = 1
+                            AND pr.resultScore >= pr.passScore
+                            <if test="cityIds != null">
+                                AND u.parentId IN (SELECT comu.id FROM  users comu WHERE comu.roleId = 3
+                                AND comu.isValid = 1
+                                AND comu.cityId IN (
+                                    <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                                        #{cityId}
+                                    </foreach>
+                                  )
+                                <if test="searchParams != null">
+                                    AND comu.showName LIKE '%${searchParams}%'
+                                </if>
+                                )
+                            </if>
+                            <if test="stageId != null">
+                                AND cc.curriculumStageId = #{stageId}
+                            </if>
+                            <if test="year != null">
+                                AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                            </if>
+
+
+                     ) AS safeNum,
+
+            (SELECT COUNT(DISTINCT u.id) FROM curriculum cc,papers p,paper_record pr,users u
+                  WHERE p.type = 2 AND p.targetId = cc.id AND pr.userId = u.id  AND u.isValid = 1
+                    AND p.id = pr.paperId AND cc.curriculumStageId = 2
+                          AND pr.resultScore >= pr.passScore
+                            <if test="cityIds != null">
+                                AND u.parentId IN (SELECT comu.id FROM  users comu WHERE comu.roleId = 3
+                                AND comu.isValid = 1
+                                AND comu.cityId IN (
+                                    <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                                        #{cityId}
+                                    </foreach>
+                                  )
+                                <if test="searchParams != null">
+                                    AND comu.showName LIKE '%${searchParams}%'
+                                </if>
+                                )
+                            </if>
+                            <if test="stageId != null">
+                                AND cc.curriculumStageId = #{stageId}
+                            </if>
+                            <if test="year != null">
+                                AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                            </if>
+
+                      ) AS allSafeNum,
+            (SELECT COUNT(DISTINCT u.id) FROM curriculum cc,papers p,paper_record pr,users u
+                  WHERE p.type = 2 AND p.targetId = cc.id
+                    AND p.id = pr.paperId AND cc.curriculumStageId = 1 AND pr.userId = u.id AND u.isValid = 1
+                            AND pr.resultScore >= pr.passScore
+                            <if test="cityIds != null">
+                                AND u.parentId IN (SELECT comu.id FROM  users comu WHERE comu.roleId = 3
+                                AND comu.isValid = 1
+                                AND comu.cityId IN (
+                                    <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                                        #{cityId}
+                                    </foreach>
+                                  )
+                                <if test="searchParams != null">
+                                    AND comu.showName LIKE '%${searchParams}%'
+                                </if>
+                                )
+                            </if>
+                            <if test="stageId != null">
+                                AND cc.curriculumStageId = #{stageId}
+                            </if>
+                            <if test="year != null">
+                                AND DATE_FORMAT(cc.`year`,'%Y') = DATE_FORMAT(#{year},'%Y')
+                            </if>
+
+                     ) AS threeSafeNum
+
+    </select>
+
+    <select id="queryUserDetail" resultMap="IncludeCurriculum">
+        SELECT
+            u.id,
+            u.showName,
+            u.avatar,
+            u.phone,
+            u.pid,
+            u.departmentName,
+            u.jobTitle,
+            u.introduce,
+            (SELECT showName FROM users WHERE id = u.parentId) AS companyName
+        FROM
+            users u
+        WHERE
+            u.id = #{userId}
+    </select>
+
+    <select id="queryUserForGovernment" resultMap="IncludeCity">
+      SELECT u.id,u.showName,u.avatar,u.cityId,
+        (SELECT tradeName FROM trade WHERE  id = u.tradeId) AS tradeName,
+        (SELECT COUNT(0) FROM users uu WHERE uu.parentId = u.id) AS peopleNum,
+        (SELECT COUNT(DISTINCT pr.userId) FROM paper_record pr,papers p WHERE pr.userId IN (SELECT id FROM users WHERE parentId = u.id)
+        AND pr.paperId = p.id AND p.type = 2 AND pr.resultScore >= pr.passScore ) AS safeNum
+      FROM users u
+      WHERE u.roleId = 3
+        AND u.isValid = 1
+      <if test="companyName != null and companyName !=''">
+          AND u.showName LIKE '%${companyName}%'
+      </if>
+      <if test="cityIds != null">
+          AND u.cityId IN (
+            <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                #{cityId}
+            </foreach>
+          )
+      </if>
+    <if test="limit != null and limitSize != null">
+        LIMIT #{limit},#{limitSize}
+    </if>
+    </select>
+
+    <select id="countUserForGovernment" resultType="java.lang.Integer">
+      SELECT
+        COUNT(*)
+      FROM users u
+      WHERE u.roleId = 3
+        AND u.isValid = 1
+      <if test="companyName != null">
+          AND u.showName LIKE '%${companyName}%'
+      </if>
+      <if test="cityIds != null">
+          AND u.cityId IN (
+            <foreach collection="cityIds" index="index" item="cityId" separator=",">
+                #{cityId}
+            </foreach>
+          )
+      </if>
+    </select>
+
+    <select id="queryUserByCompanyId" resultMap="BaseUser">
+        SELECT
+          u.id,u.avatar,u.showName,u.phone,u.departmentName,u.jobTitle,u.pid,
+          (SELECT COUNT(0) FROM users WHERE parentId = #{companyId} AND isValid = 1 ) AS peopleNum
+          <if test="IsAllocation != 1">
+              ,
+              (SELECT cc.curriculumName FROM curriculum cc WHERE cc.id = (
+                  IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+                  (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+              ))) AS curriculumName,
+
+              IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+              (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+              ) AS curriculumId,
+
+              IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+                  (SELECT
+                  (SELECT COUNT(0) FROM finish_record fr,course_ware cw
+                  WHERE fr.userId = cnr.userId AND fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id AND cw.curriculumId = o.curriculumId)
+                  FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+              ,
+              (SELECT
+                  (SELECT COUNT(0) FROM finish_record fr,course_ware cw
+                  WHERE fr.userId = o.userId AND fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id AND cw.curriculumId = o.curriculumId)
+              FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+              ) AS finishCourseWareNum,
+
+              IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+
+              (SELECT
+                  (SELECT COUNT(0) FROM papers p,paper_record pr
+                  WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = o.userId AND pr.resultScore > pr.passScore)
+              FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+              ,
+              (SELECT
+                  (SELECT COUNT(0) FROM papers p,paper_record pr
+                  WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = cca.userId AND pr.resultScore >= pr.passScore)
+              FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+              ) AS isPass,
+
+              IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+
+              (SELECT
+                  (SELECT pr.createTime FROM papers p,paper_record pr
+                  WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = o.userId AND pr.resultScore > pr.passScore)
+              FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+              ,
+              (SELECT
+                  (SELECT  pr.createTime FROM papers p,paper_record pr
+                  WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = cca.userId AND pr.resultScore >= pr.passScore)
+              FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+              ) AS passTime
+
+          </if>
+        FROM users u
+        WHERE
+        u.parentId = #{companyId}
+        AND u.isValid = 1
+        <if test="searchParams != null">
+            AND (u.showName LIKE '%${searchParams}%' OR  u.pid LIKE '%${searchParams}%' OR u.phone LIKE '%${searchParams}%')
+        </if>
+        <if test="IsAllocation == 1">
+            <!-- AND u.id NOT IN (SELECT ca.userId FROM curriculum_allocation ca WHERE ca.orderId=#{orderId}) -->
+            AND u.id NOT IN (SELECT ca.userId FROM curriculum_allocation ca WHERE ca.orderId IN
+            (SELECT id FROM `order` WHERE userId = #{companyId} AND curriculumId = #{curriculumId}))
+        </if>
+        ORDER BY u.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryCompanyList" resultMap="BaseUser">
+        SELECT id,showName FROM  users WHERE  roleId = 3  AND isValid = 1
+    </select>
+
+    <select id="queryNoCompanyUser" resultMap="BaseUser">
+        SELECT * FROM  users u
+        WHERE u.roleId = 4
+        AND u.isValid = 1
+        AND u.parentId IS NULL
+        <if test="levelType == 1">
+            AND u.cityId IN (SELECT cc.id FROM citys cc WHERE cc.parentId IN
+            (SELECT c.id FROM citys c WHERE c.parentId = #{cityId}))
+        </if>
+        <if test="levelType == 2">
+            AND u.cityId IN (SELECT cc.id FROM citys cc WHERE cc.parentId =#{cityId})
+        </if>
+        <if test="levelType == 3">
+            AND u.cityId = #{cityId}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND (u.phone LIKE '%${phone}%' OR u.showName LIKE '%${phone}%')
+        </if>
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryUserList" resultMap="BaseUser" parameterType="map">
+        SELECT u.*,
+        uu.showName AS companyName
+        FROM  users u LEFT JOIN users uu ON uu.id = u.parentId
+        WHERE 1=1
+        AND u.isValid = 1
+        <if test="showName != null">
+            AND u.showName LIKE '%${showName}%'
+        </if>
+        <if test="companyName != null">
+            AND u.showName LIKE '%${companyName}%'
+        </if>
+        <if test="tradeId != null">
+            AND u.tradeId = #{tradeId}
+        </if>
+        <if test="phone != null">
+            AND u.phone = #{phone}
+        </if>
+        <if test="roleId != null">
+            AND u.roleId = #{roleId}
+        </if>
+        ORDER BY u.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <select id="countUserList" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM  users u LEFT JOIN users uu ON uu.id = u.parentId
+        WHERE 1=1
+        AND u.isValid = 1
+        <if test="showName != null">
+            AND u.showName LIKE '%${showName}%'
+        </if>
+        <if test="companyName != null">
+            AND u.showName LIKE '%${companyName}%'
+        </if>
+        <if test="tradeId != null">
+            AND u.tradeId = #{tradeId}
+        </if>
+        <if test="phone != null">
+            AND u.phone = #{phone}
+        </if>
+        <if test="roleId != null">
+            AND u.roleId = #{roleId}
+        </if>
+    </select>
+
+
+    <select id="queryBaseUserByPhone" resultMap="BaseUser">
+        SELECT u.*,
+         (SELECT uu.showName FROM users uu WHERE uu.id = u.parentId) AS companyName
+         FROM  users u
+         WHERE u.phone = #{phone}  AND u.isValid = 1
+    </select>
+
+    <update id="clearDeviceInfo">
+        UPDATE users SET deviceToken = NULL,deviceType = NULl WHERE id = #{id}
+    </update>
+
+    <select id="queryUserByItems" resultMap="BaseUser" parameterType="map">
+        SELECT * FROM  users u
+        WHERE 1=1
+        AND u.isValid = 1
+        ORDER BY u.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="countUserByItems" resultType="java.lang.Integer" parameterType="map">
+        SELECT COUNT(0) FROM  users u
+        WHERE 1=1
+        AND u.isValid = 1
+        ORDER BY u.id
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryUserByCompany" resultMap="BaseUser">
+        SELECT * FROM users WHERE showName = #{companyName} AND roleId = 3 AND isValid = 1
+    </select>
+
+    <select id="queryUserByRoleId" resultMap="BaseUser">
+        SELECT * FROM users WHERE roleId = #{roleId}  AND isValid = 1
+    </select>
+
+    <select id="queryUserByParent" resultMap="BaseUser">
+        SELECT u.*,tr.tradeName,
+
+        (SELECT ct.curriculumTypeName FROM curriculum cc, curriculum_type ct WHERE cc.curriculumTypeId = ct.id and cc.id = (
+        IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+        (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ))) AS curriculumTypeName,
+
+        (SELECT cs.stageName FROM curriculum cc, curriculum_stage cs WHERE cc.curriculumStageId = cs.id and cc.id = (
+        IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+        (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ))) AS stageName,
+
+        (SELECT cc.curriculumName FROM curriculum cc WHERE cc.id = (
+        IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+        (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ))) AS curriculumName,
+
+        IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+        (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ) AS curriculumId,
+
+        IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+        (SELECT
+        (SELECT COUNT(0) FROM finish_record fr,course_ware cw
+        WHERE fr.userId = cnr.userId AND fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id AND cw.curriculumId = o.curriculumId)
+        FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+        ,
+        (SELECT
+        (SELECT COUNT(0) FROM finish_record fr,course_ware cw
+        WHERE fr.userId = o.userId AND fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id AND cw.curriculumId = o.curriculumId)
+        FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ) AS finishCourseWareNum,
+
+        IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+
+        (SELECT
+        (SELECT COUNT(0) FROM papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = o.userId AND pr.resultScore > pr.passScore)
+        FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+        ,
+        (SELECT
+        (SELECT COUNT(0) FROM papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = cca.userId AND pr.resultScore >= pr.passScore)
+        FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ) AS isPass,
+
+        IF((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1) IS NOT NULL ,
+
+        (SELECT
+        (SELECT pr.createTime FROM papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = o.userId AND pr.resultScore > pr.passScore)
+        FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1)
+        ,
+        (SELECT
+        (SELECT  pr.createTime FROM papers p,paper_record pr
+        WHERE p.id = pr.paperId AND p.type = 2 AND p.targetId = o.curriculumId AND pr.orderId = o.id AND pr.userId = cca.userId AND pr.resultScore >= pr.passScore)
+        FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        ) AS passTime,
+
+        (SELECT count(*) FROM course_ware cw WHERE cw.curriculumId =
+        (SELECT cc.id FROM curriculum cc WHERE cc.id = (
+        IFNULL((SELECT o.curriculumId FROM curriculum_new_record cnr,`order` o WHERE cnr.userId = u.id AND o.id =cnr.orderId ORDER BY cnr.id DESC LIMIT 0,1),
+        (SELECT o.curriculumId FROM `order` o,curriculum_allocation cca WHERE o.userId = u.id OR (o.id = cca.orderId AND cca.userId = u.id) ORDER BY o.id DESC LIMIT 0,1)
+        )))) AS totalCourseWareNum
+
+        FROM users u LEFT JOIN trade tr ON u.tradeId = tr.id  WHERE  /*u.roleId = 4 AND */u.isValid = 1
+        <if test="parentId != null">
+            AND u.parentId = #{parentId}
+        </if>
+        <if test="userName != null">
+            AND u.showName LIKE '%${userName}%'
+        </if>
+        <if test="null != userIds">
+            AND u.id IN
+            <foreach collection="userIds" index="index" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="queryUserByPhone" resultMap="IncludeCity">
+        SELECT u.*,uu.showName AS companyName,
+        t.tradeName AS tradeName
+        FROM users u LEFT JOIN users uu ON u.parentId = uu.id
+        LEFT JOIN trade t ON u.tradeId = t.id
+        WHERE u.phone = #{phone} AND u.isValid = 1
+    </select>
+
+    <select id="queryBaseInfoById" resultMap="BaseUser">
+        SELECT * FROM users WHERE  id = #{id}
+    </select>
+
+    <update id="batchUpdateUser">
+        <foreach collection="users" index="index" item="user" separator=";">
+            UPDATE users
+            <set>
+                <if test="user.email != null">
+                    `email` = #{user.email},
+                </if>
+                <if test="user.peopleId != null">
+                    `peopleId` = #{user.peopleId},
+                </if>
+                <if test="user.jobTitle != null">
+                    `jobTitle` = #{user.jobTitle},
+                </if>
+                <if test="user.departmentName != null">
+                    `departmentName` = #{user.departmentName},
+                </if>
+                <if test="user.definition != null">
+                    `definition` = #{user.definition},
+                </if>
+                <if test="user.updateTime != null">
+                    `updateTime` = #{user.updateTime},
+                </if>
+                <if test="user.lastLoginTime != null">
+                    `lastLoginTime` = #{user.lastLoginTime},
+                </if>
+                <if test="user.deviceToken != null">
+                    `deviceToken` = #{user.deviceToken},
+                </if>
+                <if test="user.deviceType != null">
+                    `deviceType` = #{user.deviceType},
+                </if>
+                <if test="user.token != null">
+                    `token` = #{user.token},
+                </if>
+                <if test="user.isValid != null">
+                    `isValid` = #{user.isValid},
+                </if>
+                <if test="user.parentId != null">
+                    `parentId` = #{user.parentId},
+                </if>
+                <if test="user.status != null">
+                    `status` = #{user.status},
+                </if>
+                <if test="user.accumulate != null">
+                    `accumulate` = #{user.accumulate},
+                </if>
+                <if test="user.introduce != null">
+                    `introduce` = #{user.introduce},
+                </if>
+                <if test="user.licenseFile != null">
+                    `licenseFile` = #{user.licenseFile},
+                </if>
+                <if test="user.tradeId != null">
+                    `tradeId` = #{user.tradeId},
+                </if>
+                <if test="user.veriFaceImages != null">
+                    `veriFaceImages` = #{user.veriFaceImages},
+                </if>
+                <if test="user.avatar != null">
+                    `avatar` = #{user.avatar},
+                </if>
+                <if test="user.cityId != null">
+                    `cityId` = #{user.cityId},
+                </if>
+                <if test="user.pid != null">
+                    `pid` = #{user.pid},
+                </if>
+                <if test="user.showName != null">
+                    `showName` = #{user.showName},
+                </if>
+                <if test="user.nickName != null">
+                    `nickName` = #{user.nickName},
+                </if>
+                <if test="user.pwd != null">
+                    `pwd` = #{user.pwd},
+                </if>
+                <if test="user.notes != null and user.notes != ''">
+                    `notes` = #{user.notes},
+                </if>
+            </set>
+            WHERE id=#{user.id}
+        </foreach>
+    </update>
+
+
+    <update id="batchUpdate">
+        <foreach collection="users" index="index" item="user" separator=";">
+            UPDATE users
+            <set>
+                <if test="user.jobTitle != null">
+                    `jobTitle` = #{user.jobTitle},
+                </if>
+                <if test="user.departmentName != null">
+                    `departmentName` = #{user.departmentName},
+                </if>
+                <if test="user.parentId != null">
+                    `parentId` = #{user.parentId},
+                </if>
+                <if test="user.email != null">
+                    `email` = #{user.email},
+                </if>
+            </set>
+            WHERE phone=#{user.phone}
+        </foreach>
+    </update>
+
+    <update id="updateUser">
+        UPDATE users
+        <set>
+            <if test="user.roleId != null">
+                `roleId` = #{user.roleId},
+            </if>
+            <if test="user.email != null">
+                `email` = #{user.email},
+            </if>
+            <if test="user.peopleId != null">
+                `peopleId` = #{user.peopleId},
+            </if>
+            <if test="user.jobTitle != null">
+                `jobTitle` = #{user.jobTitle},
+            </if>
+            <if test="user.departmentName != null">
+                `departmentName` = #{user.departmentName},
+            </if>
+            <if test="user.faceInfo != null">
+                `faceInfo` = #{user.faceInfo},
+            </if>
+            <if test="user.faceId != null">
+                `faceId` = #{user.faceId},
+            </if>
+            <if test="user.definition != null">
+                `definition` = #{user.definition},
+            </if>
+            <if test="user.updateTime != null">
+                `updateTime` = #{user.updateTime},
+            </if>
+            <if test="user.lastLoginTime != null">
+                `lastLoginTime` = #{user.lastLoginTime},
+            </if>
+            <if test="user.deviceToken != null">
+                `deviceToken` = #{user.deviceToken},
+            </if>
+            <if test="user.deviceType != null">
+                `deviceType` = #{user.deviceType},
+            </if>
+            <if test="user.token != null">
+                `token` = #{user.token},
+            </if>
+            <if test="user.isValid != null">
+                `isValid` = #{user.isValid},
+            </if>
+            <if test="user.parentId != null">
+                `parentId` = #{user.parentId},
+            </if>
+            <if test="user.status != null">
+                `status` = #{user.status},
+            </if>
+            <if test="user.accumulate != null">
+                `accumulate` = #{user.accumulate},
+            </if>
+            <if test="user.introduce != null">
+                `introduce` = #{user.introduce},
+            </if>
+            <if test="user.licenseFile != null">
+                `licenseFile` = #{user.licenseFile},
+            </if>
+            <if test="user.tradeId != null">
+                `tradeId` = #{user.tradeId},
+            </if>
+            <if test="user.veriFaceImages != null">
+                `veriFaceImages` = #{user.veriFaceImages},
+            </if>
+            <if test="user.avatar != null">
+                `avatar` = #{user.avatar},
+            </if>
+            <if test="user.cityId != null">
+                `cityId` = #{user.cityId},
+            </if>
+            <if test="user.pid != null">
+                `pid` = #{user.pid},
+            </if>
+            <if test="user.showName != null">
+                `showName` = #{user.showName},
+            </if>
+            <if test="user.nickName != null">
+                `nickName` = #{user.nickName},
+            </if>
+            <if test="user.pwd != null">
+                `pwd` = #{user.pwd},
+            </if>
+            <if test="user.notes != null and user.notes != ''">
+                `notes` = #{user.notes},
+            </if>
+        </set>
+        WHERE id=#{user.id}
+    </update>
+
+    <insert id="addUser" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.magic.aimai.business.entity.User">
+        INSERT INTO users (roleId, phone, pwd, nickName, showName, pid, cityId, avatar, veriFaceImages,
+        tradeId, licenseFile, introduce, accumulate, status, parentId,  token, deviceType,
+        deviceToken, createTime, lastLoginTime, updateTime,faceId,faceInfo,departmentName,jobTitle ,notes,email)
+        VALUES
+        (#{roleId}, #{phone}, #{pwd}, #{nickName}, #{showName}, #{pid}, #{cityId}, #{avatar}, #{veriFaceImages},
+        #{tradeId}, #{licenseFile}, #{introduce}, #{accumulate}, #{status}, #{parentId}, #{token}, #{deviceType},
+        #{deviceToken}, NOW(), NOW(), NOW(),#{faceId},#{faceInfo},#{departmentName},#{jobTitle},#{notes},#{email})
+    </insert>
+
+    <insert id="batchAddUser" useGeneratedKeys="true" keyColumn="id">
+        INSERT INTO users (roleId, phone, pwd, nickName, showName, pid, cityId, avatar, veriFaceImages,
+        tradeId, licenseFile, introduce, accumulate, status, parentId,  token, deviceType,
+        deviceToken, createTime, lastLoginTime, updateTime ,notes,email)
+        VALUES
+        <foreach collection="users" index="index" item="user" separator=",">
+            (#{user.roleId}, #{user.phone}, #{user.pwd}, #{user.nickName}, #{user.showName}, #{user.pid},
+            #{user.cityId}, #{user.avatar}, #{user.veriFaceImages},
+            #{user.tradeId}, #{user.licenseFile}, #{user.introduce}, 0, #{user.status},
+            #{user.parentId}, #{user.token}, #{user.deviceType},
+            #{user.deviceToken}, NOW(), NOW(), NOW(),#{user.notes},#{user.email})
+        </foreach>
+    </insert>
+
+    <select id="listForAdmin" resultMap="IncludeCity2" parameterType="map">
+        SELECT u.*,c.* ,t.tradeName ,r.roleName
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN citys c ON c.id = u.cityId
+        ,role r
+        WHERE u.roleId = r.id
+        AND u.isValid = 1
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+
+        <if test="tradeId != null">
+            AND u.tradeId = #{tradeId}
+        </if>
+        <if test="showName != null and showName != ''">
+            AND u.showName Like '%${showName}%'
+        </if>
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+        <if test="status != null">
+            AND u.status = #{status}
+        </if>
+        <if test="roleId != null">
+            AND u.roleId = #{roleId}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        u.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT
+        COUNT(*)
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN citys c ON c.id = u.cityId
+        ,role r
+        WHERE u.roleId = r.id
+        AND u.isValid = 1
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        <if test="tradeId != null">
+            AND u.tradeId = #{tradeId}
+        </if>
+        <if test="showName != null and showName != ''">
+            AND u.showName Like '%${showName}%'
+        </if>
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+        <if test="status != null">
+            AND u.status = #{status}
+        </if>
+    </select>
+
+
+    <select id="listForAdminRecord" resultMap="IncludeCity2" parameterType="map">
+        SELECT u.*,c.* ,t.tradeName ,r.roleName ,company.showName AS companyName
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN users company ON u.parentId = company.id
+        LEFT JOIN finish_record fr ON fr.userId = u.id
+        left join citys c on c.id = u.cityId
+        ,role r
+        WHERE
+        u.roleId = r.id
+        AND u.isValid = 1
+        AND
+
+        u.id IN (
+        select * from (
+        SELECT u1.id FROM users u1
+        LEFT JOIN users company1 ON u1.parentId = company1.id
+        LEFT JOIN finish_record fr1 ON fr1.userId = u1.id
+        WHERE
+        u1.`status` = 1
+        AND u1.isValid = 1
+        <if test="startTime != null">
+            AND fr1.createTime <![CDATA[ <= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr1.createTime <![CDATA[ >= ]]> #{endTime}
+        </if>
+        <if test="companyName != null and companyName != ''">
+            AND company1.showName Like '%${companyName}%'
+        </if>
+        <if test="companyId != null">
+            AND company1.id = #{companyId}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND u1.phone Like '%${phone}%'
+        </if>
+        <if test="pid != null and pid != ''">
+            AND u1.pid Like '%${pid}%'
+        </if>
+        <if test="roleId != null">
+            AND u1.roleId = #{roleId}
+        </if>
+        GROUP BY u1.id
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        u1.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+        ) us
+        )
+        ORDER BY u.id DESC
+    </select>
+
+
+
+
+    <select id="listForWebRecord" resultMap="IncludeCity2" parameterType="map">
+        SELECT u.*,c.* ,t.tradeName ,r.roleName ,company.showName AS companyName
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN users company ON u.parentId = company.id
+        LEFT JOIN finish_record fr ON fr.userId = u.id
+        left join citys c on c.id = u.cityId
+        ,role r
+        WHERE
+        u.roleId = r.id
+        AND u.isValid = 1
+        AND
+
+        u.id IN (
+        select * from (
+        SELECT u1.id FROM users u1
+        LEFT JOIN users company1 ON u1.parentId = company1.id
+        LEFT JOIN finish_record fr1 ON fr1.userId = u1.id
+        WHERE
+        u1.`status` = 1
+        AND u1.isValid = 1
+        <if test="startTime != null">
+            AND fr1.createTime <![CDATA[ <= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr1.createTime <![CDATA[ >= ]]> #{endTime}
+        </if>
+        <if test="companyName != null and companyName != ''">
+            AND company1.showName Like '%${companyName}%'
+        </if>
+        <if test="companyId != null">
+            AND company1.id = #{companyId}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND u1.phone Like '%${phone}%'
+        </if>
+        <if test="pid != null and pid != ''">
+            AND u1.pid Like '%${pid}%'
+        </if>
+        <if test="roleId != null">
+            AND u1.roleId = #{roleId}
+        </if>
+        <if test="cityIdSet != null and cityIdSet.size > 0">
+            AND (u1.cityId in (
+            <foreach collection="cityIdSet" separator="," item="cityId">
+                #{cityId}
+            </foreach>
+            ) /*or u1.cityId is null*/)
+        </if>
+        GROUP BY u1.id
+        ORDER BY
+        u1.id DESC
+        <if test="limit != null and limitSize != null">
+            limit #{limit}, #{limitSize}
+        </if>
+        ) us
+        )
+        ORDER BY u.id DESC
+    </select>
+
+
+
+    <select id="listForAdminRecordCount" resultType="int" parameterType="map">
+        select COUNT(*) from (
+            SELECT
+              u.id
+            FROM users u
+            LEFT JOIN trade t ON t.id = u.tradeId
+            LEFT JOIN users company ON u.parentId = company.id
+            LEFT JOIN finish_record fr ON fr.userId = u.id
+            LEFT JOIN citys c ON c.id = u.cityId
+            ,role r
+            WHERE u.roleId = r.id
+            AND u.status = 1
+        AND u.isValid = 1
+            <if test="startTime != null">
+                AND fr.createTime <![CDATA[ <= ]]> #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND fr.createTime <![CDATA[ >= ]]> #{endTime}
+            </if>
+            <if test="companyName != null and companyName != ''">
+                AND company.showName Like '%${companyName}%'
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone Like '%${phone}%'
+            </if>
+            <if test="companyId != null">
+                AND company.id = #{companyId}
+            </if>
+            <if test="pid != null and pid != ''">
+                AND u.pid Like '%${pid}%'
+            </if>
+            <if test="roleId != null">
+                AND u.roleId = #{roleId}
+            </if>
+            <if test="cityIdSet != null and cityIdSet.size > 0">
+                AND (u.cityId in (
+                <foreach collection="cityIdSet" separator="," item="cityId">
+                    #{cityId}
+                </foreach>
+                ) /*or u.cityId is null*/)
+            </if>
+            GROUP BY u.id
+        ) us
+
+
+    </select>
+
+
+
+    <select id="info" resultMap="IncludeCity2">
+        SELECT u.*,c.*,company.showName AS companyName ,t.tradeName
+        FROM users u
+        LEFT JOIN users company ON u.parentId = company.id
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN citys c ON c.id = u.cityId
+
+        WHERE
+        u.id = #{id}
+    </select>
+
+
+
+    <select id="findUserByPhone2" resultMap="BaseUser" parameterType="map">
+        select u.* from users u ,users company ,`order` o
+        WHERE  u.parentId = company.id
+        AND u.isValid = 1
+        AND o.userId = company.id
+        AND o.id = #{orderId}
+        AND u.id NOT IN
+        (
+        SELECT u1.id FROM `order` o1 ,curriculum c1 ,curriculum_allocation ca1 ,users u1
+        WHERE o1.id = ca1.orderId
+        AND o1.curriculumId = c1.id
+        AND ca1.userId = u1.id
+        AND o1.id = #{orderId}
+        )
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        u.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="findUserByPhoneCount" resultType="int" parameterType="map">
+        select COUNT(*)
+        FROM users u ,users company ,`order` o
+        WHERE  u.parentId = company.id
+        AND u.isValid = 1
+        AND o.userId = company.id
+        AND o.id = #{orderId}
+        AND u.id NOT IN
+        (
+        SELECT u1.id FROM `order` o1 ,curriculum c1 ,curriculum_allocation ca1 ,users u1
+        WHERE o1.id = ca1.orderId
+        AND o1.curriculumId = c1.id
+        AND ca1.userId = u1.id
+        AND o1.id = #{orderId}
+        )
+        <if test="phone != null and phone != ''">
+            AND u.phone Like '%${phone}%'
+        </if>
+
+    </select>
+
+    <select id="getByPid" resultMap="BaseUser">
+      select * from users u WHERE u.pid = #{pid} and u.roleId = #{roleId}  AND u.isValid = 1
+    </select>
+
+    <select id="getByPids" resultMap="BaseUser">
+      select * from users u WHERE
+      u.pid IN (
+      <foreach collection="pids" separator="," item="pid">
+          #{pid}
+      </foreach>
+      ) and u.roleId = #{roleId}  AND u.isValid = 1
+    </select>
+
+
+    <delete id="deleteByRoleId" >
+        DELETE FROM users WHERE roleId = #{roleId}
+    </delete>
+
+
+    <update id="removeParentId">
+        update users set parentId = null where id = #{id};
+    </update>
+
+
+
+    <select id="excelUser" resultMap="IncludeCurriculumWo" parameterType="map">
+        SELECT u.showName ,c.mergerName AS cityMergerName,t.tradeName ,r.roleName ,
+        u.createTime,u.pid,u.phone,
+        company.showName AS companyName,u.phone,u.pid,
+        curr.curriculumName AS curr_curriculumName ,o.id AS curr_orderId,cw.curriculumId AS curr_cw_curriculumId,cw.id AS curr_cw_id,curr.id AS curr_id,
+        (SELECT vs.createTime FROM video_status vs WHERE vs.orderId = o.id and vs.userId = u.id ORDER BY vs.id ASC LIMIT 0,1 ) AS curr_studyStartTime,
+        (SELECT fr.createTime FROM finish_record fr WHERE fr.orderId = o.id AND fr.type = 1 AND fr.targetId = curr.id and fr.userId = u.id ORDER BY fr.id DESC LIMIT 0,1 ) AS curr_studyEndTime,
+        (SELECT par.createTime FROM paper_record par WHERE pap.id = par.paperId AND par.userId = u.id AND par.orderId = o.id ORDER BY par.resultScore DESC limit 0,1) AS curr_examTime,
+        (SELECT par.seconds FROM paper_record par WHERE pap.id = par.paperId AND par.userId = u.id AND par.orderId = o.id ORDER BY par.resultScore DESC limit 0,1) AS curr_useTime,
+        (SELECT par.passScore FROM paper_record par WHERE pap.id = par.paperId AND par.userId = u.id AND par.orderId = o.id ORDER BY par.resultScore DESC limit 0,1) AS curr_passScore,
+        (SELECT par.resultScore FROM paper_record par WHERE pap.id = par.paperId AND par.userId = u.id AND par.orderId = o.id ORDER BY par.resultScore DESC limit 0,1) AS curr_resultScore,
+        cw.courseWareName AS curr_cw_courseWareName,
+
+        (SELECT vs.createTime FROM video_status vs ,videos v WHERE vs.orderId = o.id
+        AND vs.userId = u.id AND vs.videoId = v.id AND v.courseWareId = cw.id
+        ORDER BY vs.id ASC LIMIT 0,1 ) AS curr_cw_studyStartTime,
+        (SELECT SUM(v.lowDefinitionSeconds) FROM videos v WHERE cw.id = v.courseWareId ) AS curr_cw_hdSeconds,
+        /*(SELECT SUM(vs.seconds) FROM videos v ,video_status vs
+            WHERE cw.id = v.courseWareId AND vs.`status` = 2 AND  v.id = vs.videoId
+            AND vs.orderId = o.id and vs.userId = u.id
+            ORDER BY vs.id DESC) AS curr_cw_expendSeconds*/
+        sp_sum_studySeconds(o.id,u.id,cw.id) AS curr_cw_expendSeconds,
+        (SELECT COUNT(DISTINCT fr.targetId,fr.userId) FROM finish_record fr
+        WHERE fr.userId = o.userId AND fr.orderId = o.id AND fr.type = 0 )
+        AS curr_studyNum,
+        (SELECT fr.createTime FROM finish_record fr WHERE fr.orderId = o.id AND fr.type = 0 AND fr.targetId = cw.id and fr.userId = u.id ORDER BY fr.id DESC LIMIT 0,1 ) AS curr_cw_studyEndTime,
+        fr1.id AS curr_fr_id,
+        fr1.orderId AS curr_fr_orderId,
+        fr1.userId AS curr_fr_userId,
+        fr1.createTime AS curr_fr_createTime,
+        fr1.faceImage AS curr_fr_faceImage
+
+
+
+
+        FROM users u
+        LEFT JOIN trade t ON t.id = u.tradeId
+        LEFT JOIN users company ON u.parentId = company.id
+        left join citys c on c.id = u.cityId
+        LEFT JOIN
+            (SELECT o0.*,o0.userId AS userId2 FROM `order` o0  UNION
+            SELECT o1.*,ca.userId AS userId2 FROM `order` o1 ,curriculum_allocation ca
+            WHERE o1.id = ca.orderId) o ON o.userId2 = u.id
+        LEFT JOIN curriculum curr on curr.id = o.curriculumId
+        LEFT JOIN course_ware cw on cw.curriculumId = curr.id
+        LEFT JOIN papers pap ON pap.targetId = curr.id AND pap.type = 2
+        LEFT JOIN face_record fr1 ON fr1.orderId = o.id AND u.id = fr1.userId
+
+        ,role r
+        WHERE
+        u.roleId = r.id
+        AND
+        u.id IN (
+        select * from (
+        SELECT u1.id FROM users u1
+        LEFT JOIN users company1 ON u1.parentId = company1.id
+        LEFT JOIN finish_record fr1 ON fr1.userId = u1.id
+        WHERE
+        u1.`status` = 1
+        <if test="null != userIds">
+            AND u1.id IN
+            <foreach collection="userIds" index="index" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="startTime != null">
+            AND fr1.createTime <![CDATA[ <= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr1.createTime <![CDATA[ >= ]]> #{endTime}
+        </if>
+        <if test="companyName != null and companyName != ''">
+            AND company1.showName Like '%${companyName}%'
+        </if>
+        <if test="companyId != null">
+            AND company1.id = #{companyId}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND u1.phone Like '%${phone}%'
+        </if>
+        <if test="pid != null and pid != ''">
+            AND u1.pid Like '%${pid}%'
+        </if>
+        <if test="roleId != null">
+            AND u1.roleId = #{roleId}
+        </if>
+        GROUP BY u1.id
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        u1.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+        ) us
+        )
+        ORDER BY u.id DESC
+    </select>
+
+</mapper>

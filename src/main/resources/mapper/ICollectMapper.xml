@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ICollectMapper">
+
+
+
+    <insert id="addCollect" parameterType="com.magic.aimai.business.entity.Collect">
+        INSERT INTO collect ( userId, type, targetId)
+        VALUES ( #{userId}, #{type}, #{targetId})
+    </insert>
+
+
+    <select id="checkCollect" resultType="com.magic.aimai.business.entity.Collect">
+        SELECT * FROM collect WHERE  userId = #{userId} AND `type` = #{type} AND targetId = #{targetId}
+    </select>
+
+    <delete id="delete" >
+        DELETE FROM collect WHERE userId = #{userId} AND targetId = #{targetId} AND `type` = #{type}
+    </delete>
+
+    <delete id="del" >
+        DELETE FROM collect WHERE id = #{id}
+    </delete>
+</mapper>

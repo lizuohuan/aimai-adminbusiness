@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.INewsMapper">
+
+
+    <select id="queryNewsByItems" resultType="com.magic.aimai.business.entity.News">
+        SELECT n.* FROM news n WHERE 1=1
+        <if test="isRecommend != null">
+            AND n.isRecommend = #{isRecommend}
+        </if>
+        ORDER BY n.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryNews" resultType="com.magic.aimai.business.entity.News" parameterType="map">
+        SELECT
+            n.`createTime`,n.`title`,n.`image`,n.id,n.isLink,n.linkUrl,n.readNum,
+            (SELECT COUNT(0) FROM collect cc WHERE cc.targetId = n.id AND cc.`type`=0) AS collectNum
+        FROM
+            news n,news_type nt
+        WHERE n.type = nt.id
+        <if test="provinceId != null">
+            AND n.cityId IN (SELECT cc.id FROM citys cc WHERE cc.parentId = #{provinceId} OR
+                cc.parentId IN (SELECT id FROM citys  WHERE parentId = #{provinceId}))
+        </if>
+        <if test="townId != null">
+            AND n.cityId IN (SELECT cc.id FROM citys cc WHERE cc.parentId = #{townId})
+        </if>
+        <if test="countyId != null">
+            AND n.cityId = #{countyId}
+        </if>
+        <if test="type != null">
+            AND n.type = #{type}
+        </if>
+        <if test="searchParam != null">
+            AND (n.title LIKE '%${searchParam}%' OR nt.typeName LIKE '%${searchParam}%')
+        </if>
+        <if test="sort == 1 or sort == null">
+            ORDER BY n.id DESC
+        </if>
+        <if test="sort == 0">
+            ORDER BY n.readNum DESC
+        </if>
+
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+
+    <insert id="addNews" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.magic.aimai.business.entity.News">
+        INSERT INTO news ( title, image, digest, content, source, editor, createUserId, createTime,readNum,
+        `type`,linkUrl,isLink,isRecommend,cityId)
+        VALUES ( #{title}, #{image}, #{digest}, #{content}, #{source}, #{editor}, #{createUserId}, now(),0,
+        #{type},#{linkUrl},#{isLink},#{isRecommend},#{cityId})
+    </insert>
+
+    <select id="queryNewsByCollect" resultType="com.magic.aimai.business.entity.News">
+        SELECT
+         n.id,n.title,n.image,n.createTime,n.id,
+        (SELECT COUNT(0) FROM collect tt WHERE tt.type = 0 AND tt.targetId = n.id) AS collectNum
+        FROM  news n,collect ct
+        WHERE n.id = ct.targetId
+        AND ct.userId = #{userId}
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="info" resultType="com.magic.aimai.business.entity.News">
+         SELECT
+            n.*,u.showName AS createUserName,
+            (SELECT COUNT(0) FROM collect cc WHERE cc.targetId = n.id AND cc.`type`=0) AS collectNum
+        FROM
+            news n ,users u
+        WHERE
+        n.createUserId = u.id
+        AND n.id = #{id}
+    </select>
+
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.News" parameterType="map">
+        SELECT
+        n.*,u.showName AS createUserName
+        FROM news n ,users u
+        WHERE n.createUserId = u.id
+
+        <if test="title != null and title != ''">
+            AND n.title Like '%${title}%'
+        </if>
+        <if test="editor != null and editor != ''">
+            AND n.editor Like '%${editor}%'
+        </if>
+        <if test="type != null">
+            AND n.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND n.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND n.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        n.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM news n ,users u
+        WHERE n.createUserId = u.id
+        <if test="title != null and title != ''">
+            AND n.title Like '%${title}%'
+        </if>
+        <if test="editor != null and editor != ''">
+            AND n.editor Like '%${editor}%'
+        </if>
+        <if test="type != null">
+            AND n.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND n.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND n.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.News">
+      UPDATE news
+      <set>
+        <if test="cityId != null">
+            cityId = #{cityId},
+        </if>
+        <if test="title != null and title != ''">
+            title = #{title},
+        </if>
+        <if test="image != null and image != ''">
+            image = #{image},
+        </if>
+        <if test="digest != null and digest != ''">
+            digest = #{digest},
+        </if>
+        <if test="content != null and content != ''">
+            content = #{content},
+        </if>
+        <if test="source != null and source != ''">
+            source = #{source},
+        </if>
+        <if test="editor != null and editor != ''">
+            editor = #{editor},
+        </if>
+        <if test="isLink != null">
+            isLink = #{isLink},
+        </if>
+        <if test="linkUrl != null and linkUrl != ''">
+            linkUrl = #{linkUrl},
+        </if>
+        <if test="readNum != null">
+            readNum = #{readNum},
+        </if>
+        <if test="type != null">
+            `type` = #{type},
+        </if>
+        <if test="isRecommend != null">
+            `isRecommend` = #{isRecommend},
+        </if>
+      </set>
+      <where>
+          id = #{id}
+      </where>
+    </update>
+
+
+    <delete id="delete" >
+        DELETE FROM news WHERE id = #{id}
+    </delete>
+</mapper>

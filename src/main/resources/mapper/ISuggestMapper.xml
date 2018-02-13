@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.ISuggestMapper">
+
+
+
+
+
+    <insert id="addSuggest" parameterType="com.magic.aimai.business.entity.Suggest">
+        INSERT INTO suggest (content, userId, createTime)
+        VALUES (#{content}, #{userId}, NOW())
+    </insert>
+
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.Suggest" parameterType="map">
+        SELECT
+        s.*,u.showName AS userName
+        FROM suggest s ,users u
+        WHERE s.userId = u.id
+        <if test="userName != null and userName != ''">
+            AND u.showName Like '%${userName}%'
+        </if>
+
+        <if test="startTime != null">
+            AND s.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND s.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        s.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM suggest s ,users u
+        WHERE s.userId = u.id
+        <if test="userName != null and userName != ''">
+            AND u.showName Like '%${userName}%'
+        </if>
+
+        <if test="startTime != null">
+            AND s.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND s.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+    <delete id="delete" >
+        DELETE FROM suggest WHERE id = #{id}
+    </delete>
+</mapper>

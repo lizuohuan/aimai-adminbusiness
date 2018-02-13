@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IExaminationPaperMapper">
+
+
+
+    <resultMap id="BaseExaminationPaper" type="com.magic.aimai.business.entity.ExaminationPaper">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <resultMap id="IncludeExamination" type="com.magic.aimai.business.entity.ExaminationPaper" extends="BaseExaminationPaper">
+        <association property="examination" resultMap="com.magic.aimai.business.mapper.IExaminationMapper.BaseExamination"/>
+    </resultMap>
+
+
+
+    <select id="listForAdmin" parameterType="map" resultMap="IncludeExamination">
+        SELECT eep.id,e.*,eep.score,u.showName AS companyName,cc.curriculumName AS curriculumName,t.tradeName AS tradeName,
+        c.mergerName AS cityName
+        FROM examination e
+        LEFT JOIN curriculum cc ON e.curriculumId = cc.id
+        LEFT JOIN citys c ON c.id = e.cityId
+        LEFT JOIN users u ON u.id = e.companyId
+        LEFT JOIN trade t ON t.id = e.tradeId
+        ,examination_paper eep
+        WHERE eep.examinationId = e.id
+        AND eep.paperId = #{paperId}
+        <if test="curriculumId != null">
+            AND e.id IN
+            (SELECT
+            DISTINCT e.id
+            FROM
+            examination e,
+            examination_paper ep
+            WHERE
+            e.id = ep.examinationId
+            AND ep.paperId IN (
+            SELECT pa.id FROM papers pa WHERE pa.type = 0 AND pa.targetId IN (SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = #{curriculumId})
+            ))
+        </if>
+        <if test="title != null and title != ''">
+            AND e.title LIKE '%${title}%'
+        </if>
+        <if test="companyId != null">
+            AND e.companyId = #{companyId}
+        </if>
+        <if test="curriculumId != null">
+            AND e.curriculumId = #{curriculumId}
+        </if>
+        <if test="tradeId != null">
+            AND e.tradeId = #{tradeId}
+        </if>
+        <if test="category != null">
+            AND e.category = #{category}
+        </if>
+        <if test="type != null">
+            AND e.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND e.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND e.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        eep.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" parameterType="map" resultType="java.lang.Integer">
+        select COUNT(0)
+        FROM examination e
+        LEFT JOIN curriculum cc ON e.curriculumId = cc.id
+        LEFT JOIN citys c ON c.id = e.cityId
+        LEFT JOIN users u ON u.id = e.companyId
+        LEFT JOIN trade t ON t.id = e.tradeId
+        ,examination_paper eep
+        WHERE eep.examinationId = e.id
+        AND eep.paperId = #{paperId}
+        <if test="curriculumId != null">
+            AND e.id IN
+            (SELECT
+            DISTINCT e.id
+            FROM
+            examination e,
+            examination_paper ep
+            WHERE
+            e.id = ep.examinationId
+            AND ep.paperId IN (
+            SELECT p.id FROM papers p WHERE p.type = 0 AND p.targetId IN (SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = #{curriculumId})
+            ))
+        </if>
+        <if test="title != null and title != ''">
+            AND e.title LIKE '%${title}%'
+        </if>
+        <if test="companyId != null">
+            AND e.companyId = #{companyId}
+        </if>
+        <if test="curriculumId != null">
+            AND e.curriculumId = #{curriculumId}
+        </if>
+        <if test="tradeId != null">
+            AND e.tradeId = #{tradeId}
+        </if>
+        <if test="category != null">
+            AND e.category = #{category}
+        </if>
+        <if test="type != null">
+            AND e.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND e.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND e.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="delete" >
+        DELETE FROM examination_paper WHERE id = #{id}
+    </select>
+
+    <select id="countExaminationPaperByExaminationId" resultType="int">
+        select count(*) from examination_paper ep WHERE ep.examinationId = #{examinationId};
+    </select>
+</mapper>

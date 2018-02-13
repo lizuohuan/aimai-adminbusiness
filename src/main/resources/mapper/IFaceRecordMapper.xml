@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IFaceRecordMapper" >
+
+
+    <resultMap id="BaseFaceRecord" type="com.magic.aimai.business.entity.FaceRecord">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="videoId" property="videoId" javaType="java.lang.Integer"/>
+        <result column="status" property="status" javaType="java.lang.Integer"/>
+        <result column="userId" property="userId" javaType="java.lang.Integer"/>
+        <result column="faceImage" property="faceImage" javaType="java.lang.String"/>
+        <result column="videoSecond" property="videoSecond" javaType="java.lang.Integer"/>
+        <result column="orderId" property="orderId" javaType="java.lang.Integer"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+    </resultMap>
+
+    <insert id="addFaceRecord" parameterType="com.magic.aimai.business.entity.FaceRecord">
+        INSERT INTO face_record (videoId, `status`, userId, createTime, faceImage, videoSecond,orderId)
+        VALUES (#{videoId}, #{status}, #{userId}, now(), #{faceImage}, #{videoSecond},#{orderId})
+    </insert>
+
+
+    <select id="queryFaceRecordByItems" resultType="com.magic.aimai.business.entity.FaceRecord">
+        SELECT fr.* FROM face_record fr
+        WHERE 1=1
+        <if test="userId != null">
+            AND fr.userId = #{userId}
+        </if>
+        <if test="videoId != null">
+            AND fr.videoId = #{videoId}
+        </if>
+        <if test="status != null">
+            AND fr.`status` = #{status}
+        </if>
+        <if test="orderId != null">
+            AND fr.`orderId` = #{orderId}
+        </if>
+        ORDER BY fr.id DESC
+    </select>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.FaceRecord" parameterType="map">
+        SELECT fr.*,cw.courseWareName,v.`name` AS videoName
+        FROM face_record fr,course_ware cw ,videos v
+        WHERE fr.videoId = v.id
+        AND v.courseWareId = cw.id
+        AND cw.id = #{courseWareId}
+        AND fr.orderId = #{orderId}
+        AND fr.userId = #{userId}
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName Like '%${courseWareName}%'
+        </if>
+        <if test="videoName != null and videoName != ''">
+            AND v.`name` Like '%${videoName}%'
+        </if>
+        <if test="startTime != null">
+            AND fr.createTime <![CDATA[ <= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr.createTime <![CDATA[ >= ]]> #{endTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        fr.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+    <select id="listForWeb" resultType="com.magic.aimai.business.entity.FaceRecord" parameterType="map">
+        SELECT fr.*,cw.courseWareName,v.`name` AS videoName
+        FROM face_record fr,course_ware cw ,videos v
+        WHERE fr.videoId = v.id
+        AND v.courseWareId = cw.id
+        AND cw.id = #{courseWareId}
+        AND fr.orderId = #{orderId}
+        AND fr.userId = #{userId}
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName Like '%${courseWareName}%'
+        </if>
+        <if test="videoName != null and videoName != ''">
+            AND v.`name` Like '%${videoName}%'
+        </if>
+        <if test="startTime != null">
+            AND fr.createTime <![CDATA[ <= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr.createTime <![CDATA[ >= ]]> #{endTime}
+        </if>
+        ORDER BY
+        fr.id DESC
+        <if test="limit != null and limitSize != null">
+            limit #{limit}, #{limitSize}
+        </if>
+    </select>
+
+    <select id="listForAdminCount" resultType="int" parameterType="map">
+        SELECT COUNT(*)
+        FROM face_record fr,course_ware cw ,videos v
+        WHERE fr.videoId = v.id
+        AND v.courseWareId = cw.id
+        AND cw.id = #{courseWareId}
+        AND fr.orderId = #{orderId}
+        AND fr.userId = #{userId}
+        <if test="courseWareName != null and courseWareName != ''">
+            AND cw.courseWareName Like '%${courseWareName}%'
+        </if>
+        <if test="videoName != null and videoName != ''">
+            AND v.`name` Like '%${videoName}%'
+        </if>
+        <if test="startTime != null">
+            AND fr.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND fr.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </select>
+
+</mapper>

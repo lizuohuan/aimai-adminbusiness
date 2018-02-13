@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IExaminationMapper">
+
+
+
+    <resultMap id="BaseExamination" type="com.magic.aimai.business.entity.Examination">
+        <result column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="type" property="type" javaType="java.lang.Integer"/>
+        <result column="title" property="title" javaType="java.lang.String"/>
+        <result column="examinationKey" property="examinationKey" javaType="java.lang.String"/>
+        <result column="emphasis" property="emphasis" javaType="java.lang.String"/>
+        <result column="createTime" property="createTime" javaType="java.util.Date"/>
+        <result column="category" property="category" javaType="java.lang.Integer"/>
+        <result column="tradeId" property="tradeId" javaType="java.lang.Integer"/>
+        <result column="curriculumId" property="curriculumId" javaType="java.lang.Integer"/>
+        <result column="cityId" property="cityId" javaType="java.lang.Integer"/>
+        <result column="companyId" property="companyId" javaType="java.lang.Integer"/>
+        <result column="score" property="score" javaType="java.lang.Integer"/>
+
+        <result column="tradeName" property="tradeName" javaType="java.lang.String"/>
+        <result column="curriculumName" property="curriculumName" javaType="java.lang.String"/>
+        <result column="cityName" property="cityName" javaType="java.lang.String"/>
+        <result column="companyName" property="companyName" javaType="java.lang.String"/>
+        <result column="courseWareName" property="courseWareName" javaType="java.lang.String"/>
+    </resultMap>
+
+
+    <resultMap id="IncludeExaminationItems" type="com.magic.aimai.business.entity.Examination" extends="BaseExamination">
+        <association property="examinationItemsList" column="id" select="com.magic.aimai.business.mapper.IExaminationItemsMapper.queryExaminationByExamination"/>
+    </resultMap>
+
+    <select id="queryExaminationByCollect" resultMap="IncludeExaminationItems">
+        SELECT e.* FROM  examination e,collect cc
+        WHERE cc.type = 2 AND cc.targetId = e.id AND cc.userId = #{userId}
+        ORDER BY cc.id DESC
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+
+    </select>
+
+    <select id="queryErrorExaminationByIds" resultMap="IncludeExaminationItems">
+        SELECT e.* FROM examination e WHERE  e.id IN (
+          <foreach collection="ids" index="index" item="id" separator=",">
+              #{id}
+          </foreach>
+        )
+    </select>
+
+    <select id="queryErrorExamination" resultMap="IncludeExaminationItems">
+        SELECT
+            e.*,
+            cw.courseWareName,
+            cc.curriculumName
+        FROM
+            error_examination ee
+        LEFT JOIN examination e ON ee.examinationId = e.id
+        LEFT JOIN examination_paper ep ON ep.examinationId = e.id
+        LEFT JOIN papers p ON  p.id = ep.paperId
+        LEFT JOIN course_ware cw ON cw.id = p.targetId AND p.type = 0
+        LEFT JOIN curriculum cc ON cc.id = cw.curriculumId
+        LEFT JOIN `order` o ON cc.id = o.curriculumId
+
+        WHERE
+        o.id = #{orderId}
+        AND cw.id = #{courseWareId}
+        AND ee.userId = #{userId}
+        GROUP BY ee.examinationId
+        <if test="limit != null and limitSize != null">
+            LIMIT #{limit},#{limitSize}
+        </if>
+    </select>
+
+    <select id="queryBaseExamination" resultMap="BaseExamination">
+        SELECT * FROM examination WHERE  id = #{examinationId}
+    </select>
+
+    <select id="queryExaminationByPaper" resultMap="IncludeExaminationItems">
+        SELECT
+            ex.*,ep.score AS score
+        FROM
+            examination ex,
+            examination_paper ep
+        WHERE
+            ex.id = ep.examinationId
+        AND ep.paperId = #{paperId}
+    </select>
+
+    <update id="updateExamination">
+        UPDATE examination
+        <set>
+            <if test="examination.emphasis != null">
+                `emphasis`=#{examination.emphasis},
+            </if>
+            <if test="examination.examinationKey != null">
+                `examinationKey`=#{examination.examinationKey},
+            </if>
+            <if test="examination.title != null">
+                `title`=#{examination.title},
+            </if>
+            <if test="examination.type != null">
+                `type`=#{examination.type},
+            </if>
+            <if test="examination.category != null">
+                `category`=#{examination.category},
+            </if>
+            <if test="examination.tradeId != null">
+                `tradeId`=#{examination.tradeId},
+            </if>
+            <if test="examination.curriculumId != null">
+                `curriculumId`=#{examination.curriculumId},
+            </if>
+            <if test="examination.cityId != null">
+                `cityId`=#{examination.cityId},
+            </if>
+            <if test="examination.companyId != null">
+                `companyId`=#{examination.companyId},
+            </if>
+        </set>
+        WHERE id = #{examination.id}
+    </update>
+
+    <insert id="addExamination" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="com.magic.aimai.business.entity.Examination">
+        INSERT INTO examination ( title, `type`, examinationKey, createTime, category, tradeId, curriculumId, cityId, companyId,emphasis)
+        VALUES (#{title}, #{type}, #{examinationKey}, NOW(),#{category}, #{tradeId}, #{curriculumId}, #{cityId}, #{companyId},#{emphasis})
+    </insert>
+    <!-- 一对多 一个题目 对应多个答案 -->
+    <resultMap id="IncludeExaminationItems2" type="com.magic.aimai.business.entity.Examination" extends="BaseExamination">
+        <association property="examinationItemsList" resultMap="com.magic.aimai.business.mapper.IExaminationItemsMapper.BaseExaminationItems" />
+    </resultMap>
+
+
+    <select id="listForAdmin" parameterType="map" resultMap="IncludeExaminationItems2">
+        SELECT e.*,u.showName AS companyName,cc.curriculumName AS curriculumName,t.tradeName AS tradeName,
+        c.mergerName AS cityName
+        FROM examination e
+        LEFT JOIN curriculum cc ON e.curriculumId = cc.id
+        LEFT JOIN citys c ON c.id = e.cityId
+        LEFT JOIN users u ON u.id = e.companyId
+        LEFT JOIN trade t ON t.id = e.tradeId
+        WHERE 1=1
+        <if test="curriculumIds != null">
+            AND e.id IN
+            (SELECT
+            DISTINCT e.id
+            FROM
+            examination e,
+            examination_paper ep
+            WHERE
+            e.id = ep.examinationId
+            AND ep.paperId IN (
+            SELECT p.id FROM papers p WHERE p.type = 0 AND p.targetId IN (SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = #{curriculumIds})
+            ))
+        </if>
+        <if test="source != null and source == 0">
+            AND (select count(0) from examination_items ex where ex.examinationId = e.id) > 0
+        </if>
+        <if test="paperId != null">
+            AND e.id NOT IN (SELECT eep.examinationId FROM  examination_paper eep WHERE eep.paperId = #{paperId})
+        </if>
+        <if test="paperId != null">
+            <if test="paperType == 0">
+                <!-- 练习题 排除其他练习题 同一个课程下每套练习题里面的习题不一样-->
+                AND e.id NOT IN (
+                SELECT
+                  ep.id
+                FROM
+                  papers p,examination_paper ep
+                WHERE
+                  p.type = 0
+                AND p.id = ep.paperId
+                AND p.targetId IN (
+                    SELECT
+                      cw.id
+                    FROM
+                      course_ware cw
+                    WHERE
+                      cw.curriculumId = (
+                    SELECT
+                      ccw.curriculumId
+                    FROM
+                      course_ware ccw
+                    WHERE
+                      ccw.id = #{targetId}
+                      )
+                    )
+                )
+            </if>
+            <if test="paperType == 1">
+                AND e.id NOT IN (
+                    SELECT
+                      ep.id
+                    FROM
+                      papers p,examination_paper ep
+                    WHERE
+                      p.type = 1
+                    AND p.id = ep.paperId
+                    AND p.targetId = #{targetId}
+                )
+            </if>
+        </if>
+        <if test="title != null and title != ''">
+            AND e.title LIKE '%${title}%'
+        </if>
+        <if test="companyId != null">
+            AND e.companyId = #{companyId}
+        </if>
+        <if test="curriculumId != null">
+            AND e.curriculumId = #{curriculumId}
+        </if>
+        <if test="tradeId != null">
+            AND e.tradeId = #{tradeId}
+        </if>
+        <if test="category != null">
+            AND e.category = #{category}
+        </if>
+        <if test="type != null">
+            AND e.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND e.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND e.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        e.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" parameterType="map" resultType="java.lang.Integer">
+        select COUNT(0)
+        FROM examination e
+        LEFT JOIN citys c ON c.id = e.cityId
+        LEFT JOIN users u ON u.id = e.companyId
+        LEFT JOIN trade t ON t.id = e.tradeId
+        WHERE 1=1
+        <if test="curriculumIds != null">
+          AND e.id IN
+            (SELECT
+            DISTINCT e.id
+            FROM
+            examination e,
+            examination_paper ep
+            WHERE
+            e.id = ep.examinationId
+            AND ep.paperId IN (
+            SELECT p.id FROM papers p WHERE p.type = 0 AND p.targetId IN (SELECT cw.id FROM course_ware cw WHERE cw.curriculumId = #{curriculumIds})
+            ))
+        </if>
+        <if test="source != null and source == 0">
+            AND (select count(0) from examination_items ex where ex.examinationId = e.id) > 0
+        </if>
+        <if test="paperId != null">
+            AND e.id NOT IN (SELECT eep.examinationId FROM  examination_paper eep WHERE eep.paperId = #{paperId})
+        </if>
+        <if test="paperId != null">
+            <if test="paperType == 0">
+                <!-- 练习题 排除其他练习题 同一个课程下每套练习题里面的习题不一样-->
+                AND e.id NOT IN (
+                SELECT
+                ep.id
+                FROM
+                papers p,examination_paper ep
+                WHERE
+                p.type = 0
+                AND p.id = ep.paperId
+                AND p.targetId IN (
+                SELECT
+                cw.id
+                FROM
+                course_ware cw
+                WHERE
+                cw.curriculumId = (
+                SELECT
+                ccw.curriculumId
+                FROM
+                course_ware ccw
+                WHERE
+                ccw.id = #{targetId}
+                )
+                )
+                )
+            </if>
+            <if test="paperType == 1">
+                AND e.id NOT IN (
+                SELECT
+                ep.id
+                FROM
+                papers p,examination_paper ep
+                WHERE
+                p.type = 1
+                AND p.id = ep.paperId
+                AND p.targetId = #{targetId}
+                )
+            </if>
+        </if>
+        <if test="title != null and title != ''">
+            AND e.title LIKE '%${title}%'
+        </if>
+        <if test="companyId != null">
+            AND e.companyId = #{companyId}
+        </if>
+        <if test="curriculumId != null">
+            AND e.curriculumId = #{curriculumId}
+        </if>
+        <if test="tradeId != null">
+            AND e.tradeId = #{tradeId}
+        </if>
+        <if test="category != null">
+            AND e.category = #{category}
+        </if>
+        <if test="type != null">
+            AND e.type = #{type}
+        </if>
+        <if test="startTime != null">
+            AND e.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND e.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <choose>
+            <when test="districtId != null">
+                AND u.cityId = #{districtId}
+            </when>
+            <otherwise>
+                <choose>
+                    <when test="cityId != null">
+                        AND u.cityId IN (
+                        SELECT #{cityId} AS id  UNION
+                        SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{cityId})
+                    </when>
+                    <otherwise>
+                        <if test="provinceId != null">
+                            AND u.cityId IN (
+                            SELECT #{provinceId} AS id  UNION
+                            SELECT ct2.id FROM citys ct2 WHERE ct2.parentId = #{provinceId} UNION
+                            SELECT ct3.id FROM citys ct3 WHERE ct3.parentId IN (SELECT c3_1.id FROM citys c3_1 WHERE c3_1.parentId = #{provinceId}))
+                        </if>
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="info" resultMap="IncludeExaminationItems2">
+        select * from examination e LEFT JOIN examination_items ei ON e.id = ei.examinationId
+        WHERE e.id = #{id}
+    </select>
+
+    <select id="queryBaseExaminationById" resultMap="IncludeExaminationItems">
+        select * from examination e
+        WHERE e.id = #{id}
+    </select>
+
+
+    <insert id="addList" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO examination ( title, `type`, examinationKey, createTime,emphasis)
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (#{e.title}, #{e.type}, #{e.examinationKey}, NOW(),#{e.emphasis})
+        </foreach>
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM examination WHERE id = #{id}
+    </delete>
+
+</mapper>

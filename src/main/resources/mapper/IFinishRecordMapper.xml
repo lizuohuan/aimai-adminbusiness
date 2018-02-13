@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IFinishRecordMapper" >
+
+
+    <select id="queryTargetFinishRecord" resultType="java.lang.Integer">
+        SELECT
+            COUNT(0)
+        FROM
+            finish_record f
+        WHERE
+            f.`type` = #{type}
+        AND f.orderId = #{orderId}
+        AND f.userId = #{userId}
+        <if test="type == 1">
+            AND targetId = ( SELECT cw.curriculumId FROM course_ware cw WHERE cw.id = (
+                SELECT
+                  v.courseWareId
+                FROM
+                  videos v
+                WHERE
+                  v.id = #{videoId}
+              )
+            )
+        </if>
+        <if test="type == 0">
+            AND targetId = (
+                SELECT
+                  v.courseWareId
+                FROM
+                  videos v
+                WHERE
+                  v.id = #{videoId}
+            )
+        </if>
+
+    </select>
+
+    <select id="queryFinishRecord" resultType="com.magic.aimai.business.entity.FinishRecord">
+        SELECT * FROM finish_record
+        WHERE `type` = #{type}
+        AND userId = #{userId}
+        AND targetId = #{targetId}
+        AND orderId = #{orderId}
+    </select>
+
+
+    <insert id="batchAddFinishRecord">
+        INSERT INTO finish_record (userId, targetId, `type`, createTime,orderId)
+        VALUES
+        <foreach collection="finishRecordList" index="index" item="finishRecord" separator=",">
+            (#{finishRecord.userId}, #{finishRecord.targetId}, #{finishRecord.type}, now(),#{finishRecord.orderId})
+        </foreach>
+    </insert>
+
+    <insert id="addFinishRecord" parameterType="com.magic.aimai.business.entity.FinishRecord">
+        INSERT INTO finish_record (userId, targetId, `type`, createTime,orderId)
+        VALUES (#{userId}, #{targetId}, #{type}, now(),#{orderId})
+    </insert>
+
+    <update id="updateFinishRecord">
+        UPDATE finish_record
+        <set>
+            <if test="finishRecord.orderId != null">
+                `orderId` = #{finishRecord.orderId},
+            </if>
+            <if test="finishRecord.type != null">
+                `type` = #{finishRecord.type},
+            </if>
+            <if test="finishRecord.createTime != null">
+                createTime = #{finishRecord.createTime},
+            </if>
+            <if test="finishRecord.targetId != null">
+                targetId = #{finishRecord.targetId},
+            </if>
+            <if test="finishRecord.userId != null">
+                userId = #{finishRecord.userId},
+            </if>
+        </set>
+        WHERE id = #{finishRecord.id}
+    </update>
+
+
+
+</mapper>

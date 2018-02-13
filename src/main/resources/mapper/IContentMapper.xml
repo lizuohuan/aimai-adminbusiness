@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IContentMapper">
+
+
+    <select id="info" resultType="com.magic.aimai.business.entity.Content">
+        select * from content WHERE id = #{id}
+    </select>
+
+
+    <update id="update" parameterType="com.magic.aimai.business.entity.Content" >
+        UPDATE content SET
+        content = #{content}
+        where id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IBannerMapper">
+
+
+
+    <delete id="delBanner">
+        DELETE FROM banner WHERE  id = #{bannerId}
+    </delete>
+
+    <select id="queryBannerById" resultType="com.magic.aimai.business.entity.Banner">
+        SELECT * FROM banner WHERE  id = #{bannerId}
+    </select>
+
+
+    <select id="queryBannerList" resultType="com.magic.aimai.business.entity.Banner">
+        SELECT * FROM banner WHERE  `validity` >= #{time}
+        <if test="isBanner != null">
+            AND isBanner = #{isBanner}
+        </if>
+        ORDER BY id DESC
+    </select>
+
+
+
+    <insert id="addBanner" parameterType="com.magic.aimai.business.entity.Banner">
+        INSERT INTO banner (apiImage, pcImage, title, content, createTime, createUserId,
+        source, editor, isLink, linkUrl,validity,isBanner,location)
+         VALUES (#{apiImage}, #{pcImage}, #{title}, #{content}, now(), #{createUserId},
+         #{source}, #{editor}, #{isLink}, #{linkUrl},#{validity},#{isBanner},#{location})
+    </insert>
+
+
+    <update id="updateBanner">
+        UPDATE banner
+        <set>
+          <if test="banner.validity != null">
+              `validity` = #{banner.validity},
+          </if>
+          <if test="banner.linkUrl != null">
+              `linkUrl` = #{banner.linkUrl},
+          </if>
+          <if test="banner.isLink != null">
+              `isLink` = #{banner.isLink},
+          </if>
+          <if test="banner.editor != null">
+              `editor` = #{banner.editor},
+          </if>
+          <if test="banner.source != null">
+              `source` = #{banner.source},
+          </if>
+          <if test="banner.content != null">
+              `content` = #{banner.content},
+          </if>
+          <if test="banner.title != null">
+              `title` = #{banner.title},
+          </if>
+          <if test="banner.pcImage != null">
+              `pcImage` = #{banner.pcImage},
+          </if>
+          <if test="banner.apiImage != null">
+              `apiImage` = #{banner.apiImage},
+          </if>
+          <if test="banner.isBanner != null">
+              `isBanner` = #{banner.isBanner},
+          </if>
+          <if test="banner.location != null">
+              `location` = #{banner.location},
+          </if>
+        </set>
+        WHERE id = #{banner.id}
+    </update>
+
+    <select id="listForAdmin" resultType="com.magic.aimai.business.entity.Banner" parameterType="map">
+        SELECT
+        *
+        FROM banner b
+        WHERE 1 = 1
+
+        <if test="title != null and title != ''">
+            AND b.title Like '%${title}%'
+        </if>
+        <if test="editor != null and editor != ''">
+            AND b.editor Like '%${editor}%'
+        </if>
+        <if test="isLink != null">
+            AND b.isLink = #{isLink}
+        </if>
+        <if test="isBanner != null">
+            AND b.isBanner = #{isBanner}
+        </if>
+        <if test="startTime != null">
+            AND b.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND b.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="validityStartTime != null">
+            AND b.validity <![CDATA[ >= ]]> #{validityStartTime}
+        </if>
+        <if test="validityEndTime != null">
+            AND b.validity <![CDATA[ <= ]]> #{validityEndTime}
+        </if>
+        ORDER BY
+        <if test="pageArgs != null">
+            <if test="pageArgs.column != null and pageArgs.column != ''">
+                ${pageArgs.column} ${pageArgs.order},
+            </if>
+        </if>
+        b.id DESC
+        <if test="pageArgs != null">
+            limit #{pageArgs.pageStart}, #{pageArgs.pageSize}
+        </if>
+    </select>
+
+
+    <select id="listForAdminCount" resultType="java.lang.Integer" parameterType="map">
+        SELECT
+        COUNT(0)
+        FROM banner b
+        WHERE 1 = 1
+
+        <if test="title != null and title != ''">
+            AND b.title Like '%${title}%'
+        </if>
+        <if test="editor != null and editor != ''">
+            AND b.editor Like '%${editor}%'
+        </if>
+        <if test="isLink != null">
+            AND b.isLink = #{isLink}
+        </if>
+        <if test="isBanner != null">
+            AND b.isBanner = #{isBanner}
+        </if>
+        <if test="startTime != null">
+            AND b.createTime <![CDATA[ >= ]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND b.createTime <![CDATA[ <= ]]> #{endTime}
+        </if>
+        <if test="validityStartTime != null">
+            AND b.validity <![CDATA[ >= ]]> #{validityStartTime}
+        </if>
+        <if test="validityEndTime != null">
+            AND b.validity <![CDATA[ <= ]]> #{validityEndTime}
+        </if>
+    </select>
+
+
+    <select id="isHaveAd" resultType="com.magic.aimai.business.entity.Banner" parameterType="map">
+        SELECT
+        *
+        FROM banner b
+        WHERE b.isBanner = 0
+        AND b.location = #{location}
+    </select>
+
+
+
+</mapper>

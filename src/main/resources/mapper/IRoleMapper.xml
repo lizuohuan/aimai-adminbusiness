@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.magic.aimai.business.mapper.IRoleMapper">
+
+	<resultMap id="BaseResultMap" type="com.magic.aimai.business.entity.Role" >
+		<id column="id" property="id" javaType="java.lang.Integer" />
+		<id column="role_name" property="roleName" javaType="java.lang.String" />
+		<id column="describe" property="describe" javaType="java.lang.String" />
+	</resultMap>
+
+
+	<resultMap id="includeAdminUrl" type="com.magic.aimai.business.entity.Role" extends="BaseResultMap">
+		<!--<association property="roleUrls" column="id" select="com.magic.aimai.business.mapper.IRoleMenuMapper.queryUrlByRole"/>-->
+	</resultMap>
+
+	<!--权限列表-->
+	<select id="list" resultMap="BaseResultMap">
+		SELECT * FROM `role` r
+		ORDER BY r.id ASC
+	</select>
+
+	<!--添加角色-->
+	<insert id="insert" parameterType="com.magic.aimai.business.entity.Role">
+		INSERT INTO role(`roleName`,`describe`)
+		VALUES (#{roleName},#{describe})
+	</insert>
+
+
+	<select id="queryAdminRole" resultMap="includeAdminUrl">
+		SELECT
+			r.*
+		FROM
+			admin_role ar,
+			role r
+		WHERE
+			ar.roleId = r.id
+		AND ar.userId = #{userId}
+	</select>
+
+	<update id="updateRole">
+		UPDATE `role`
+		<set>
+			<if test="role.roleName != null">
+				`roleName` = #{role.roleName},
+			</if>
+			<if test="role.describe != null">
+				`describe` = #{role.describe},
+			</if>
+		</set>
+		WHERE 	`id` = #{role.id}
+	</update>
+
+
+
+	<delete id="delete" >
+		DELETE FROM role WHERE id = #{id}
+	</delete>
+
+
+
+
+
+</mapper>
